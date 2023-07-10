@@ -1,5 +1,5 @@
 #include <fmt/format.h>
-#include <greeter/greeter.h>
+#include <test_proj/test_proj.h>
 
 using namespace greeter;
 
