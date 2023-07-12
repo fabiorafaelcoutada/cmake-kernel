@@ -1,3 +1,9 @@
+
+# This file is a part of Simple-XX/SimpleKernel
+# (https://github.com/Simple-XX/SimpleKernel).
+#
+# .cmake-format for Simple-XX/SimpleKernel.
+
 format:
   tab_size: 2
   line_width: 100
