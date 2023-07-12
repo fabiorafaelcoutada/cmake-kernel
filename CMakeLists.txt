@@ -17,6 +17,8 @@ project(
 
 # 禁止原地编译
 if (${PROJECT_SOURCE_DIR} STREQUAL ${PROJECT_BINARY_DIR})
+    # 如果你看到这句话，cmake 此时已经在根目录下生成了一些临时文件，你需要删除它们
+    # CMakeFiles, CMakeCache.txt
     message(
             FATAL_ERROR
             "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there."
@@ -24,10 +26,13 @@ if (${PROJECT_SOURCE_DIR} STREQUAL ${PROJECT_BINARY_DIR})
 endif ()
 
 # 设置辅助 cmake 脚本路径
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/3rd")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
+message("${CMAKE_MODULE_PATH}")
+
 # 导入第三方依赖
-include(3rd)
+# include(3rd.cmake)
 
 # # PackageProject.cmake will be used to make our target installable
 # CPMAddPackage("gh:TheLartians/PackageProject.cmake@1.8.0")
