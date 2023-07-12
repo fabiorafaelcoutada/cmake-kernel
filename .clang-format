@@ -1,7 +1,8 @@
-# This file is a part of Simple-XX/SimpleKernel
-# (https://github.com/Simple-XX/SimpleKernel).
+
+# This file is a part of MRNIU/cmake-kernel
+# (https://github.com/MRNIU/cmake-kernel).
 #
-# .clang-format for Simple-XX/SimpleKernel.
+# .clang-format for MRNIU/cmake-kernel.
 
 ---
 # @version clang-format version 15
