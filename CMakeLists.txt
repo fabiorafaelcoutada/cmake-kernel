@@ -7,8 +7,6 @@
 # 设置最小 cmake 版本
 cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 
-# ---- Project ----
-
 # 设置项目名与版本
 project(
         cmake-kernel
@@ -26,13 +24,22 @@ if (${PROJECT_SOURCE_DIR} STREQUAL ${PROJECT_BINARY_DIR})
 endif ()
 
 # 设置辅助 cmake 脚本路径
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/3rd")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-message("${CMAKE_MODULE_PATH}")
+# 导入配置
+include(config)
 
 # 导入第三方依赖
-# include(3rd.cmake)
+include(3rd)
+
+# 生成依赖项 LICENSE
+# add_executable(${PROJECT_NAME} main.c)
+# add_custom_command(TARGET ${PROJECT_NAME}
+#         PRE_BUILD 
+#         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/3rd
+#         COMMAND make write-licenses
+#         COMMENT "build gnu-efi..."
+# )
 
 # # PackageProject.cmake will be used to make our target installable
 # CPMAddPackage("gh:TheLartians/PackageProject.cmake@1.8.0")

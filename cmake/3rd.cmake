@@ -3,7 +3,7 @@
 # (https://github.com/MRNIU/cmake-kernel).
 #
 # 3rd.cmake for MRNIU/cmake-kernel.
-# 第三方依赖管理
+# 依赖管理
 
 # https://github.com/cpm-cmake/CPM.cmake
 include(CPM)
