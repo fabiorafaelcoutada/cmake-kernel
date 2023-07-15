@@ -9,24 +9,35 @@ cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 
 # 设置项目名与版本
 project(
-        boot
+        ${BOOT_ELF_OUTPUT_NAME}
         VERSION 0.0.1
 )
 
 enable_language(CXX)
 enable_language(ASM)
 
-# ---- Add source files ----
+add_executable(${PROJECT_NAME} 
+        boot.cpp
+)
 
-# Note: globbing sources is considered bad practice as CMake's generators may not detect new files
-# automatically. Keep that in mind when changing files, or explicitly mention them here.
-file(GLOB_RECURSE headers CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
-file(GLOB_RECURSE sources CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
-file(GLOB_RECURSE sources_asm CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.S")
+target_compile_options(${PROJECT_NAME} PRIVATE
+    ${DEFAULT_COMPILE_OPTIONS}
+)
 
-# ---- Create library ----
+target_link_options(${PROJECT_NAME} PRIVATE 
+    -T ${SCRIPTS_FILE_OUTPUT_DIRECTORY}/gnu-efi/link.ld 
+    ${DEFAULT_LINK_OPTIONS}
+)
 
-# Note: for header-only libraries change all PUBLIC flags to INTERFACE and create an interface
-# target: add_library(${PROJECT_NAME} INTERFACE)
-add_library(${PROJECT_NAME} ${headers} ${sources} ${sources_asm})
+message("DEFAULT_COMPILE_OPTIONS: ${DEFAULT_COMPILE_OPTIONS}")
+
+set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${BOOT_ELF_OUTPUT_NAME})
 add_header_boot(${PROJECT_NAME})
+add_header_3rd(${PROJECT_NAME})
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
+        ${gnu-efi_BINARY_DIR}/gnuefi/crt0-efi-${TARGET_ARCH}.o
+        ${gnu-efi_BINARY_DIR}/gnuefi/reloc_${TARGET_ARCH}.o
+        ${gnu-efi_BINARY_DIR}/gnuefi/libgnuefi.a
+        ${gnu-efi_BINARY_DIR}/lib/libefi.a
+)

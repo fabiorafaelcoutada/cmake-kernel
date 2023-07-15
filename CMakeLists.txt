@@ -34,34 +34,143 @@ include(add_header)
 # 导入第三方依赖
 include(3rd)
 
-# target_compile_options(helloworld
-#     ${DEFAULT_COMPILE_OPTIONS}
-# )
-
 # 添加要编译的目录
 add_subdirectory(${PROJECT_SOURCE_DIR}/src)
 
-# # ---- Add source files ----
+# # objcopy --only-keep-debug foo foo.dbg 创建一个包含调试信息的文件
+# add_custom_target(kernel_debug DEPENDS kernel)
+# add_custom_command(TARGET kernel_debug
+#         POST_BUILD
+#         WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+#         COMMAND ${CMAKE_OBJCOPY} --only-keep-debug ${KERNEL_ELF_OUTPUT_NAME} ${KERNEL_ELF_OUTPUT_NAME}.debug
+#         COMMENT "Generating kernel debug...")
 
-# # Note: globbing sources is considered bad practice as CMake's generators may not detect new files
-# # automatically. Keep that in mind when changing files, or explicitly mention them here.
-# file(GLOB_RECURSE headers CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
-# file(GLOB_RECURSE sources CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/source/*.cpp")
+# # objcopy --strip-debug foo 创建一个去掉调试信息的( strip 的)可执行文件
+# # objcopy --add-gnu-debuglink=foo.dbg foo 为 strip 的文件添加调试信息链接
+# add_custom_target(kernel_raw DEPENDS kernel)
+# add_custom_command(TARGET kernel_raw
+#         POST_BUILD
+#         WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+#         COMMAND ${CMAKE_OBJCOPY} --strip-debug ${KERNEL_ELF_OUTPUT_NAME}
+#         COMMAND ${CMAKE_OBJCOPY} --add-gnu-debuglink=${KERNEL_ELF_OUTPUT_NAME}.debug ${KERNEL_ELF_OUTPUT_NAME}
+#         COMMENT "Generating raw kernel...")
 
-# # ---- Create library ----
+# # nm
+# add_custom_target(nm DEPENDS kernel)
+# add_custom_command(TARGET nm
+#         POST_BUILD
+#         WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+#         COMMAND ${CMAKE_NM} -a -A -C -l -n -s --special-syms --synthetic ${KERNEL_ELF_OUTPUT_NAME}
+#         > ${KERNEL_ELF_OUTPUT_NAME}.nm
+#         COMMENT "nm...")
 
-# # Note: for header-only libraries change all PUBLIC flags to INTERFACE and create an interface
-# # target: add_library(${PROJECT_NAME} INTERFACE)
-# add_library(${PROJECT_NAME} ${headers} ${sources})
-# set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 17)
+# # readelf -a
+# add_custom_target(readelf DEPENDS kernel)
+# add_custom_command(TARGET readelf
+#         POST_BUILD
+#         WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+#         COMMAND ${CMAKE_READELF} -a ${KERNEL_ELF_OUTPUT_NAME} > ${KERNEL_ELF_OUTPUT_NAME}.readelf || (exit 0)
+#         COMMENT "readelf...")
 
-# # being a cross-platform target, we enforce standards conformance on MSVC
-# target_compile_options(${PROJECT_NAME} PUBLIC "$<$<COMPILE_LANG_AND_ID:CXX,MSVC>:/permissive->")
+# # objdump -D
+# add_custom_target(objdump DEPENDS kernel)
+# add_custom_command(TARGET objdump
+#         POST_BUILD
+#         WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+#         COMMAND ${CMAKE_OBJDUMP} -D ${KERNEL_ELF_OUTPUT_NAME} > ${KERNEL_ELF_OUTPUT_NAME}.disassembly
+#         COMMENT "objdump done.")
 
-# # Link dependencies
-# target_link_libraries(${PROJECT_NAME} PRIVATE fmt::fmt)
+# 制作 boot.efi
+# 将引导调整为 efi
+add_custom_target(${BOOT_EFI_OUTPUT_NAME} DEPENDS ${BOOT_ELF_OUTPUT_NAME})
+add_custom_command(TARGET ${BOOT_EFI_OUTPUT_NAME}
+        WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+        COMMAND ${CMAKE_OBJCOPY} ${BOOT_ELF_OUTPUT_NAME} ${BOOT_EFI_OUTPUT_NAME}
+        -j .text -j .sdata -j .data -j .dynamic -j .dynsym
+        -j .rel -j .rela -j .rel.* -j .rela.* -j .reloc
+        --target=efi-app-${TARGET_ARCH} --subsystem=10
+        COMMENT "Build ${BOOT_EFI_OUTPUT_NAME} done."
+        )
 
-# target_include_directories(
-#   ${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-#                          $<INSTALL_INTERFACE:include/${PROJECT_NAME}-${PROJECT_VERSION}>
-# )
+add_custom_target(image_uefi DEPENDS ${BOOT_EFI_OUTPUT_NAME} )#kernel)
+add_custom_command(TARGET image_uefi
+        COMMENT "Copying bootloader and kernel"
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/image/efi/boot
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/bin/${BOOT_EFI_OUTPUT_NAME} ${CMAKE_BINARY_DIR}/image/efi/boot/
+        # COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/bin/${KERNEL_ELF_OUTPUT_NAME} ${CMAKE_BINARY_DIR}/image/
+        # COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/tools/startup.nsh ${CMAKE_BINARY_DIR}/image/startup.nsh
+        )
+
+        # 制作镜像
+add_custom_target(image DEPENDS image_uefi)
+add_custom_command(TARGET image
+        POST_BUILD
+        COMMENT "Building UEFI disk image"
+        COMMAND dd if=/dev/zero of=${CMAKE_BINARY_DIR}/kernel.img bs=1M count=33
+        COMMAND mkfs.vfat ${CMAKE_BINARY_DIR}/kernel.img -F32
+        COMMAND mcopy -s -i ${CMAKE_BINARY_DIR}/kernel.img ${CMAKE_BINARY_DIR}/image/* ::
+)
+
+# 固件
+if (TARGET_ARCH STREQUAL "riscv64")
+    set(FIRMWARE fw_jump.elf)
+    set(QEMU_FIRMWARE -bios ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${FIRMWARE})
+elseif (TARGET_ARCH STREQUAL "x86_64")
+    set(FIRMWARE OVMF_${TARGET_ARCH}.fd)
+    file(
+            COPY ${CMAKE_SOURCE_DIR}/ovmf/${FIRMWARE}
+            DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+    )
+    set(QEMU_FIRMWARE -bios ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${FIRMWARE})
+elseif (TARGET_ARCH STREQUAL "aarch64")
+    set(FIRMWARE ovmf-aarch64.fd)
+    execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/emulation/)
+    execute_process(COMMAND truncate -s 64m ${CMAKE_BINARY_DIR}/emulation/${FIRMWARE})
+    execute_process(COMMAND truncate -s 64m ${CMAKE_BINARY_DIR}/emulation/nvram.img)
+    execute_process(COMMAND dd if=${CMAKE_SOURCE_DIR}/third_party/firmware/tianocore/${FIRMWARE} of=${CMAKE_BINARY_DIR}/emulation/${FIRMWARE} conv=notrunc)
+    set(QEMU_FIRMWARE -drive if=pflash,format=raw,file=${CMAKE_BINARY_DIR}/emulation/${FIRMWARE},readonly -drive if=pflash,format=raw,file=$(CMAKE_BINARY_DIR)/emulation/nvram.img)
+endif ()
+
+# 运行 QEMU
+# qemu 配置
+set(QEMU_FLAGS -serial stdio -monitor telnet::2333,server,nowait)
+if (CMAKE_BUILD_TYPE STREQUAL Debug)
+#        set(QEMU_DEBUG -S -gdb tcp::1234)
+endif ()
+
+if (TARGET_ARCH STREQUAL "riscv64")
+    set(QEMU_MACHINE -machine virt)
+    set(QEMU_DEVICES -nographic)
+    set(QEMU_IMAGE -kernel ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${KERNEL_ELF_OUTPUT_NAME})
+    add_custom_target(run DEPENDS kernel)
+    add_custom_command(
+            TARGET run
+            COMMENT "Run SimpleKernel in qemu."
+            COMMAND qemu-system-${TARGET_ARCH} ${QEMU_FLAGS} ${QEMU_MACHINE} ${QEMU_DEVICES} ${QEMU_FIRMWARE} ${QEMU_IMAGE} ${QEMU_DEBUG}
+    )
+
+elseif (TARGET_ARCH STREQUAL "x86_64")
+    set(QEMU_MACHINE -m 128M)
+    set(QEMU_DEVICES -net none)
+    set(QEMU_IMAGE -hda fat:rw:${CMAKE_BINARY_DIR}/image/)
+    list(APPEND QEMU_FLAGS)
+    add_custom_target(run DEPENDS image_uefi)
+    add_custom_command(
+            TARGET run
+            COMMENT "Run SimpleKernel in qemu."
+            COMMAND qemu-system-${TARGET_ARCH} ${QEMU_FLAGS} ${QEMU_MACHINE} ${QEMU_DEVICES} ${QEMU_FIRMWARE} ${QEMU_IMAGE} ${QEMU_DEBUG}
+    )
+
+elseif (TARGET_ARCH STREQUAL "aarch64")
+    set(QEMU_MACHINE -machine virt -cpu cortex-a72)
+    set(QEMU_DEVICES -net none)
+    #    set(QEMU_IMAGE -hda fat:rw:${CMAKE_BINARY_DIR}/image/)
+    set(QEMU_IMAGE -drive format=raw,file=${CMAKE_BINARY_DIR}/kernel.img)
+    add_custom_target(run DEPENDS image_uefi)
+    add_custom_command(
+            TARGET run
+            COMMENT "Run SimpleKernel in qemu."
+            COMMAND qemu-system-${TARGET_ARCH} ${QEMU_FLAGS} ${QEMU_MACHINE} ${QEMU_DEVICES} ${QEMU_FIRMWARE} ${QEMU_IMAGE} ${QEMU_DEBUG}
+    )
+
+endif ()

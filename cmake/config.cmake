@@ -23,6 +23,17 @@ set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+# 头文件、脚本路径
+set(HEADER_FILE_OUTPUT_DIRECTORY   ${CMAKE_BINARY_DIR}/include)
+set(SCRIPTS_FILE_OUTPUT_DIRECTORY  ${CMAKE_BINARY_DIR}/scripts)
+# 设置清理目标 在 make clean 时删除文件夹
+set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES 
+    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+    ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}
+    ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+    ${HEADER_FILE_OUTPUT_DIRECTORY}
+    ${SCRIPTS_FILE_OUTPUT_DIRECTORY}
+)
 
 # 是否为发布版，默认为 OFF
 option(ENABLE_BUILD_RELEASE "Build as release" OFF)
@@ -119,7 +130,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATCH
             -fPIC
             # 不链接标准库
             # @todo 能不能不用？
-            -nostdlib
+            # -nostdlib
             # 将代码编译为无操作系统支持的独立程序
             -ffreestanding
             # 启用异常处理机制
@@ -184,7 +195,36 @@ if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATCH
     )
 endif ()
 
-# 设置引导名称
-set(BOOT_NAME boot.elf)
-# 设置内核名称
-set(KERNEL_NAME kernel.elf)
+# 链接选项
+set(DEFAULT_LINK_OPTIONS)
+if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+    set(DEFAULT_LINK_OPTIONS
+        PRIVATE
+            # 不链接标准库
+            # @todo 能不能不用？
+            -nostdlib
+            -fPIC
+            -no-pie
+
+            # 目标平台编译选项
+            # @todo clang 交叉编译参数
+            $<$<STREQUAL:${TARGET_ARCH},x86_64>:
+                # 设置最大页大小为 0x1000(4096) 字节
+                -z max-page-size=0x1000
+                # 编译为共享库
+                -Wl,-shared
+                # 符号级别绑定
+                -Wl,-Bsymbolic
+            >
+            $<$<STREQUAL:${TARGET_ARCH},riscv64>:
+            >
+            $<$<STREQUAL:${TARGET_ARCH},aarch64>:
+            >
+    )
+endif ()
+
+# 设置二进制文件名称
+set(BOOT_ELF_OUTPUT_NAME boot.elf)
+set(BOOT_EFI_OUTPUT_NAME boot.efi)
+set(KERNEL_ELF_OUTPUT_NAME kernel.elf)
+set(KERNEL_EFI_OUTPUT_NAME kernel.efi)

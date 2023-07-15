@@ -16,7 +16,25 @@
 
 #include "boot.h"
 
-int32_t boot(uint32_t _argc, uint8_t **_argv) {
+#include "gnu-efi/efi.h"
+#include "gnu-efi/efilib.h"
+
+extern "C" EFI_STATUS
+efi_main(void* systemTable) {
+    // uefi_call_wrapper(InitializeLib, 2, image, systemTable);
+    // EFI_STATUS status = uefi_call_wrapper(systemTable->ConOut->ClearScreen,
+    // 1,
+    //                                       systemTable->ConOut);
+
+    // status            = uefi_call_wrapper(systemTable->ConOut->OutputString,
+    // 2,
+    //                                       systemTable->ConOut, L"Hello
+    //                                       UEFI!\n");
+
+    return EFI_SUCCESS;
+}
+
+int32_t main(int32_t _argc, int8_t **_argv) {
     (void)_argc;
     (void)_argv;
 

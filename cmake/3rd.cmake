@@ -115,6 +115,8 @@ CPMAddPackage(
 if (opensbi_ADDED)
   # 编译 opensbi
   add_custom_target(opensbi
+          # make 时编译
+          ALL
           WORKING_DIRECTORY ${opensbi_SOURCE_DIR}
           COMMAND
             make
@@ -125,6 +127,12 @@ if (opensbi_ADDED)
             PLATFORM_RISCV_XLEN=64
             PLATFORM=generic
             O=${opensbi_BINARY_DIR}
+          COMMAND 
+            ${CMAKE_COMMAND} 
+            -E
+            copy 
+            ${opensbi_BINARY_DIR}/platform/generic/firmware/fw_jump.elf
+            ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/fw_jump.elf
           COMMENT "build opensbi..."
   )
 endif()
@@ -138,6 +146,8 @@ CPMAddPackage(
 if (posix-uefi_ADDED)
   # 编译 posix-uefi
   add_custom_target(posix-uefi
+          # make 时编译
+          ALL
           WORKING_DIRECTORY ${posix-uefi_SOURCE_DIR}/uefi
           COMMAND
             USE_GCC=1
@@ -149,6 +159,40 @@ if (posix-uefi_ADDED)
             copy 
             ${posix-uefi_SOURCE_DIR}/build/uefi/*
             ${posix-uefi_BINARY_DIR}
+          COMMAND 
+            ${CMAKE_COMMAND} 
+            -E
+            copy 
+            ${posix-uefi_BINARY_DIR}/crt0.o
+            ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/crt0.o
+          COMMAND 
+            ${CMAKE_COMMAND} 
+            -E
+            copy 
+            ${posix-uefi_BINARY_DIR}/libuefi.a
+            ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libuefi.a
+          COMMAND 
+            ${CMAKE_COMMAND} 
+            -E 
+            make_directory 
+            ${HEADER_FILE_OUTPUT_DIRECTORY}/posix-uefi
+          COMMAND 
+            ${CMAKE_COMMAND} 
+            -E
+            copy 
+            ${posix-uefi_BINARY_DIR}/uefi.h
+            ${HEADER_FILE_OUTPUT_DIRECTORY}/posix-uefi/uefi.h
+          COMMAND 
+            ${CMAKE_COMMAND} 
+            -E 
+            make_directory 
+            ${HEADER_FILE_OUTPUT_DIRECTORY}/posix-uefi
+          COMMAND 
+            ${CMAKE_COMMAND} 
+            -E
+            copy 
+            ${posix-uefi_BINARY_DIR}/link.ld
+            ${SCRIPTS_FILE_OUTPUT_DIRECTORY}/posix-uefi/link.ld
           COMMAND
             make clean
           COMMAND
@@ -167,6 +211,8 @@ CPMAddPackage(
 if (gnu-efi_ADDED)
   # 编译 gnu-efi
   add_custom_target(gnu-efi
+          # make 时编译
+          ALL
           WORKING_DIRECTORY ${gnu-efi_SOURCE_DIR}
           COMMAND
             make
@@ -174,10 +220,61 @@ if (gnu-efi_ADDED)
             OBJDIR=${gnu-efi_BINARY_DIR}
           COMMAND 
             ${CMAKE_COMMAND} 
-            -E 
+            -E
             copy 
-            ${gnu-efi_SOURCE_DIR}/gnuefi/elf_${TARGET_ARCH}_efi.lds 
-            ${gnu-efi_BINARY_DIR}/link.ld
+            ${gnu-efi_BINARY_DIR}/gnuefi/crt0-efi-${TARGET_ARCH}.o
+            ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/crt0-efi-${TARGET_ARCH}.o
+          COMMAND 
+            ${CMAKE_COMMAND} 
+            -E
+            copy 
+            ${gnu-efi_BINARY_DIR}/gnuefi/reloc_${TARGET_ARCH}.o
+            ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/reloc_${TARGET_ARCH}.o
+          COMMAND 
+            ${CMAKE_COMMAND} 
+            -E
+            copy 
+            ${gnu-efi_BINARY_DIR}/gnuefi/libgnuefi.a
+            ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libgnuefi.a
+          COMMAND 
+            ${CMAKE_COMMAND} 
+            -E
+            copy 
+            ${gnu-efi_BINARY_DIR}/lib/libefi.a
+            ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libefi.a
+          COMMAND 
+            ${CMAKE_COMMAND} 
+            -E 
+            make_directory 
+            ${HEADER_FILE_OUTPUT_DIRECTORY}/gnu-efi
+          COMMAND 
+            ${CMAKE_COMMAND} 
+            -E 
+            make_directory 
+            ${HEADER_FILE_OUTPUT_DIRECTORY}/gnu-efi/${TARGET_ARCH}
+          COMMAND 
+            ${CMAKE_COMMAND} 
+            -E
+            copy 
+            ${gnu-efi_SOURCE_DIR}/inc/${TARGET_ARCH}/*.h
+            ${HEADER_FILE_OUTPUT_DIRECTORY}/gnu-efi/${TARGET_ARCH}/
+          COMMAND 
+            ${CMAKE_COMMAND} 
+            -E
+            copy 
+            ${gnu-efi_SOURCE_DIR}/inc/*.h
+            ${HEADER_FILE_OUTPUT_DIRECTORY}/gnu-efi/
+          COMMAND 
+            ${CMAKE_COMMAND} 
+            -E 
+            make_directory 
+            ${SCRIPTS_FILE_OUTPUT_DIRECTORY}/gnu-efi
+          COMMAND 
+            ${CMAKE_COMMAND} 
+            -E
+            copy 
+            ${gnu-efi_SOURCE_DIR}/gnuefi/elf_${TARGET_ARCH}_efi.lds
+            ${SCRIPTS_FILE_OUTPUT_DIRECTORY}/gnu-efi/link.ld
           COMMENT "build gnu-efi..."
   )
 endif ()
