@@ -33,6 +33,8 @@ set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
     ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
     ${HEADER_FILE_OUTPUT_DIRECTORY}
     ${SCRIPTS_FILE_OUTPUT_DIRECTORY}
+    # 清除缓存
+    ${CMAKE_BINARY_DIR}/CMakeCache.txt
 )
 
 # 是否为发布版，默认为 OFF
@@ -42,7 +44,7 @@ option(ENABLE_GENERATOR_MAKE "Use make or ninja" ON)
 # 是否使用 gcc，默认为 ON
 option(ENABLE_COMPILER_GNU "Use gcc or clang" ON)
 # 是否使用 gnu-efi，默认为 ON，仅在 x86_64 平台有效
-option(ENABLE_GNU_EFI "Use gnu efi" ON)
+option(ENABLE_GNU_EFI "Use gnu efi" OFF)
 # 是否开启测试覆盖率，默认为 ON
 option(ENABLE_TEST_COVERAGE "Enable test coverage" ON)
 

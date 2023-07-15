@@ -36,6 +36,30 @@ typedef int32_t (*entry_func)(int32_t, int8_t **);
 #    define EM_MACH EM_AARCH64
 #endif
 
+#if ENABLE_GNU_EFI == 1
+
+/**
+ * efi_main - The entry point for the EFI application
+ * @image: firmware-allocated handle that identifies the image
+ * @SystemTable: EFI system table
+ */
+extern "C" EFI_STATUS
+efi_main(void* systemTable) {
+    // uefi_call_wrapper(InitializeLib, 2, image, systemTable);
+    // EFI_STATUS status = uefi_call_wrapper(systemTable->ConOut->ClearScreen,
+    // 1,
+    //                                       systemTable->ConOut);
+
+    // status            = uefi_call_wrapper(systemTable->ConOut->OutputString,
+    // 2,
+    //                                       systemTable->ConOut, L"Hello
+    //                                       UEFI!\n");
+
+    return EFI_SUCCESS;
+}
+
+#else
+
 /**
  * List memory map
  */
@@ -234,30 +258,6 @@ static entry_func get_kernel_entry(void) {
 
     return entry;
 }
-
-#if ENABLE_GNU_EFI == 1
-
-/**
- * efi_main - The entry point for the EFI application
- * @image: firmware-allocated handle that identifies the image
- * @SystemTable: EFI system table
- */
-extern "C" EFI_STATUS
-efi_main(void* systemTable) {
-    // uefi_call_wrapper(InitializeLib, 2, image, systemTable);
-    // EFI_STATUS status = uefi_call_wrapper(systemTable->ConOut->ClearScreen,
-    // 1,
-    //                                       systemTable->ConOut);
-
-    // status            = uefi_call_wrapper(systemTable->ConOut->OutputString,
-    // 2,
-    //                                       systemTable->ConOut, L"Hello
-    //                                       UEFI!\n");
-
-    return EFI_SUCCESS;
-}
-
-#else
 
 /**
  * @brief 进行系统初始化，加载内核
