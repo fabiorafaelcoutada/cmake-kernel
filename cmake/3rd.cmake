@@ -164,13 +164,13 @@ if (posix-uefi_ADDED)
             -E
             copy 
             ${posix-uefi_BINARY_DIR}/crt0.o
-            ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/crt0.o
+            ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/posix-uefi/crt0.o
           COMMAND 
             ${CMAKE_COMMAND} 
             -E
             copy 
             ${posix-uefi_BINARY_DIR}/libuefi.a
-            ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libuefi.a
+            ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/posix-uefi/libuefi.a
           COMMAND 
             ${CMAKE_COMMAND} 
             -E 
@@ -223,25 +223,25 @@ if (gnu-efi_ADDED)
             -E
             copy 
             ${gnu-efi_BINARY_DIR}/gnuefi/crt0-efi-${TARGET_ARCH}.o
-            ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/crt0-efi-${TARGET_ARCH}.o
+            ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/gnu-efi/crt0-efi-${TARGET_ARCH}.o
           COMMAND 
             ${CMAKE_COMMAND} 
             -E
             copy 
             ${gnu-efi_BINARY_DIR}/gnuefi/reloc_${TARGET_ARCH}.o
-            ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/reloc_${TARGET_ARCH}.o
+            ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/gnu-efi/reloc_${TARGET_ARCH}.o
           COMMAND 
             ${CMAKE_COMMAND} 
             -E
             copy 
             ${gnu-efi_BINARY_DIR}/gnuefi/libgnuefi.a
-            ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libgnuefi.a
+            ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/gnu-efi/libgnuefi.a
           COMMAND 
             ${CMAKE_COMMAND} 
             -E
             copy 
             ${gnu-efi_BINARY_DIR}/lib/libefi.a
-            ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libefi.a
+            ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/gnu-efi/libefi.a
           COMMAND 
             ${CMAKE_COMMAND} 
             -E 

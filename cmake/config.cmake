@@ -41,6 +41,8 @@ option(ENABLE_BUILD_RELEASE "Build as release" OFF)
 option(ENABLE_GENERATOR_MAKE "Use make or ninja" ON)
 # 是否使用 gcc，默认为 ON
 option(ENABLE_COMPILER_GNU "Use gcc or clang" ON)
+# 是否使用 gnu-efi，默认为 ON，仅在 x86_64 平台有效
+option(ENABLE_GNU_EFI "Use gnu efi" ON)
 # 是否开启测试覆盖率，默认为 ON
 option(ENABLE_TEST_COVERAGE "Enable test coverage" ON)
 
@@ -98,133 +100,118 @@ else ()
 endif ()
 message("CMAKE_TOOLCHAIN_FILE is: ${CMAKE_TOOLCHAIN_FILE}")
 
+# 编译器只支持 gnu-gcc 或 clang
+if (NOT ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang"))
+    message(FATAL_ERROR "Only support gnu-gcc/clang")
+endif()
+
 # 编译选项
 set(DEFAULT_COMPILE_OPTIONS)
-if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-    set(DEFAULT_COMPILE_OPTIONS
-        PRIVATE
-            # 发布模式
-            $<$<BOOL:${ENABLE_BUILD_RELEASE}>:
-                # 代码优化级别
-                -O3
-                # 警告作为错误处理
-                -Werror
-            >
-            # 调试模式
-            $<$<NOT:$<BOOL:${ENABLE_BUILD_RELEASE}>>:
-                # 代码优化级别
-                -O0
-                # 生成调试信息
-                -g
-                # 生成 gdb 调试信息
-                -ggdb
-            >
-            # 打开全部警告
-            -Wall 
-            # 打开额外警告
-            -Wextra
-            # 不生成位置无关可执行程序 Position-Independent Executable
-            # @todo 能不能不用？
-            -no-pie
-            # 生成位置无关代码 Position-Independent Code
-            -fPIC
-            # 不链接标准库
-            # @todo 能不能不用？
-            # -nostdlib
-            # 将代码编译为无操作系统支持的独立程序
-            -ffreestanding
-            # 启用异常处理机制
-            -fexceptions 
-            # 使用 2 字节 wchar_t
-            -fshort-wchar
-            
-            # 目标平台编译选项
-            # @todo clang 交叉编译参数
-            $<$<STREQUAL:${TARGET_ARCH},x86_64>:
-                # @todo 能否减少
-                # 生成 corei7 代码
-                -march=corei7
-                # 针对 corei7 优化代码
-                -mtune=corei7
-                # 生成 64 位代码
-                -m64
-                # 
-                -mno-red-zone
-                # 设置最大页大小为 0x1000(4096) 字节
-                -z max-page-size=0x1000
-                # 编译为共享库
-                -Wl,-shared
-                # 符号级别绑定
-                -Wl,-Bsymbolic
-            >
-            $<$<STREQUAL:${TARGET_ARCH},riscv64>:
-                # 生成 rv64imafdc 代码
-                -march=rv64imafdc
-            >
-            $<$<STREQUAL:${TARGET_ARCH},aarch64>:
-                # 生成 armv8-a 代码
-                -march=armv8-a
-                # 针对 cortex-a72 优化代码
-                -mtune=cortex-a72
-            >
+set(DEFAULT_COMPILE_OPTIONS
+    PRIVATE
+        # 发布模式
+        $<$<BOOL:${ENABLE_BUILD_RELEASE}>:
+            # 代码优化级别
+            -O3
+            # 警告作为错误处理
+            -Werror
+        >
+        # 调试模式
+        $<$<NOT:$<BOOL:${ENABLE_BUILD_RELEASE}>>:
+            # 代码优化级别
+            -O0
+            # 生成调试信息
+            -g
+            # 生成 gdb 调试信息
+            -ggdb
+        >
+        # 打开全部警告
+        -Wall 
+        # 打开额外警告
+        -Wextra
+        # 将代码编译为无操作系统支持的独立程序
+        -ffreestanding
+        # 启用异常处理机制
+        -fexceptions 
+        # 使用 2 字节 wchar_t
+        -fshort-wchar
+        
+        # 目标平台编译选项
+        # @todo clang 交叉编译参数
+        $<$<STREQUAL:${TARGET_ARCH},x86_64>:
+            # 
+            -mno-red-zone
+        >
+        $<$<STREQUAL:${TARGET_ARCH},riscv64>:
+            # 生成 rv64imafdc 代码
+            -march=rv64imafdc
+        >
+        $<$<STREQUAL:${TARGET_ARCH},aarch64>:
+            # 生成 armv8-a 代码
+            -march=armv8-a
+            # 针对 cortex-a72 优化代码
+            -mtune=cortex-a72
+        >
 
+        # 测试覆盖率选项
+        $<$<BOOL:${ENABLE_TEST_COVERAGE}>:
+            # 启用代码覆盖率
+            -fprofile-arcs
+            # 生成代码覆盖率报告
+            -ftest-coverage
+        >
 
-            # 测试覆盖率选项
-            $<$<BOOL:${ENABLE_TEST_COVERAGE}>:
-                # 启用代码覆盖率
-                -fprofile-arcs
-                # 生成代码覆盖率报告
-                -ftest-coverage
-            >
+        # gcc 特定选项
+        $<$<CXX_COMPILER_ID:GNU>:
+        >
+        
+        # clang 特定选项
+        $<$<CXX_COMPILER_ID:Clang>:
+        >
 
-            # gcc 特定选项
-            $<$<CXX_COMPILER_ID:GNU>:
-            >
-            
-            # clang 特定选项
-            $<$<CXX_COMPILER_ID:Clang>:
-            >
-
-            # 定义 gnuefi 宏
-            -DGNU_EFI_USE_MS_ABI
-            
-            # 平台相关
-            $<$<PLATFORM_ID:Darwin>:
-                -pthread
-            >
-    )
-endif ()
+        # 定义 gnuefi 宏
+        -DGNU_EFI_USE_MS_ABI
+        
+        # 平台相关
+        $<$<PLATFORM_ID:Darwin>:
+            -pthread
+        >
+)
 
 # 链接选项
 set(DEFAULT_LINK_OPTIONS)
-if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-    set(DEFAULT_LINK_OPTIONS
-        PRIVATE
-            # 不链接标准库
-            # @todo 能不能不用？
-            -nostdlib
-            -fPIC
-            -no-pie
-
-            # 目标平台编译选项
-            # @todo clang 交叉编译参数
-            $<$<STREQUAL:${TARGET_ARCH},x86_64>:
-                # 设置最大页大小为 0x1000(4096) 字节
-                -z max-page-size=0x1000
-                # 编译为共享库
-                -Wl,-shared
-                # 符号级别绑定
-                -Wl,-Bsymbolic
-            >
-            $<$<STREQUAL:${TARGET_ARCH},riscv64>:
-            >
-            $<$<STREQUAL:${TARGET_ARCH},aarch64>:
-            >
-    )
-endif ()
+set(DEFAULT_LINK_OPTIONS
+    PRIVATE
+        # 不链接标准库
+        -nostdlib
+        # 生成位置无关代码 Position-Independent Code
+        -fPIC
+        # 目标平台编译选项
+        # @todo clang 交叉编译参数
+        $<$<STREQUAL:${TARGET_ARCH},x86_64>:
+            # 设置最大页大小为 0x1000(4096) 字节
+            -z max-page-size=0x1000
+            # 编译为共享库
+            -Wl,-shared
+            # 符号级别绑定
+            -Wl,-Bsymbolic
+        >
+        $<$<STREQUAL:${TARGET_ARCH},riscv64>:
+        >
+        $<$<STREQUAL:${TARGET_ARCH},aarch64>:
+        >
+)
 
 # 设置二进制文件名称
-set(BOOT_ELF_OUTPUT_NAME boot.elf)
-set(BOOT_EFI_OUTPUT_NAME boot.efi)
-set(KERNEL_ELF_OUTPUT_NAME kernel.elf)
-set(KERNEL_EFI_OUTPUT_NAME kernel.efi)
+if (NOT DEFINED BOOT_ELF_OUTPUT_NAME)
+    set(BOOT_ELF_OUTPUT_NAME boot.elf)
+endif ()
+if (NOT DEFINED BOOT_EFI_OUTPUT_NAME)
+    set(BOOT_EFI_OUTPUT_NAME boot.efi)
+endif ()
+if (NOT DEFINED KERNEL_ELF_OUTPUT_NAME)
+    set(KERNEL_ELF_OUTPUT_NAME kernel.elf)
+endif ()
+if (NOT DEFINED KERNEL_EFI_OUTPUT_NAME)
+    set(KERNEL_EFI_OUTPUT_NAME kernel.efi)
+endif ()
