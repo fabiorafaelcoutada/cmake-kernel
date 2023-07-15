@@ -86,12 +86,6 @@ add_custom_target(opensbi
           PLATFORM_RISCV_XLEN=64
           PLATFORM=generic
           O=${opensbi_BINARY_DIR}
-        COMMAND 
-          ${CMAKE_COMMAND} 
-          -E 
-          copy
-          ${opensbi_BINARY_DIR}/platform/generic/firmware/fw_jump.elf
-          ${CMAKE_BINARY_DIR}/firmware/fw_jump.elf
         COMMENT "build opensbi..."
 )
 
@@ -136,6 +130,12 @@ add_custom_target(gnu-efi
           make
           ARCH=${TARGET_ARCH}
           OBJDIR=${gnu-efi_BINARY_DIR}
+        COMMAND 
+          ${CMAKE_COMMAND} 
+          -E 
+          copy 
+          ${gnu-efi_SOURCE_DIR}/gnuefi/elf_${TARGET_ARCH}_efi.lds 
+          ${gnu-efi_BINARY_DIR}/link.ld
         COMMENT "build gnu-efi..."
 )
 
