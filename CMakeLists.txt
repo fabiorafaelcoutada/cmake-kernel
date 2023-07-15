@@ -28,30 +28,18 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # 导入配置
 include(config)
+# 导入头文件处理
+include(add_header)
 
 # 导入第三方依赖
 include(3rd)
 
-set(sources
-    main.cpp
-)
-
-add_executable(helloworld
-    ${sources}
-)
-
-target_compile_options(helloworld
-    ${DEFAULT_COMPILE_OPTIONS}
-)
-
-# 生成依赖项 LICENSE
-# add_executable(${PROJECT_NAME} main.c)
-# add_custom_command(TARGET ${PROJECT_NAME}
-#         PRE_BUILD 
-#         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/3rd
-#         COMMAND make write-licenses
-#         COMMENT "build gnu-efi..."
+# target_compile_options(helloworld
+#     ${DEFAULT_COMPILE_OPTIONS}
 # )
+
+# 添加要编译的目录
+add_subdirectory(${PROJECT_SOURCE_DIR}/src)
 
 # # ---- Add source files ----
 
@@ -76,23 +64,4 @@ target_compile_options(helloworld
 # target_include_directories(
 #   ${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
 #                          $<INSTALL_INTERFACE:include/${PROJECT_NAME}-${PROJECT_VERSION}>
-# )
-
-# # ---- Create an installable target ----
-# # this allows users to install and find the library via `find_package()`.
-
-# # the location where the project's version header will be placed should match the project's regular
-# # header paths
-# string(TOLOWER ${PROJECT_NAME}/version.h VERSION_HEADER_LOCATION)
-
-# packageProject(
-#   NAME ${PROJECT_NAME}
-#   VERSION ${PROJECT_VERSION}
-#   NAMESPACE ${PROJECT_NAME}
-#   BINARY_DIR ${PROJECT_BINARY_DIR}
-#   INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include
-#   INCLUDE_DESTINATION include/${PROJECT_NAME}-${PROJECT_VERSION}
-#   VERSION_HEADER "${VERSION_HEADER_LOCATION}"
-#   COMPATIBILITY SameMajorVersion
-#   DEPENDENCIES "fmt 9.1.0"
 # )

@@ -5,11 +5,6 @@
 # config.cmake for MRNIU/cmake-kernel.
 # 配置信息
 
-# 设置依赖下载路径
-set(CPM_SOURCE_CACHE ${CMAKE_CURRENT_SOURCE_DIR}/3rd)
-# 优先使用本地文件
-set(CPM_USE_LOCAL_PACKAGES True)
-
 # 设置 cmake 目标环境根目录
 # @todo 设置目录
 set(CMAKE_FIND_ROOT_PATH 

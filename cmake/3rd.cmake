@@ -5,8 +5,46 @@
 # 3rd.cmake for MRNIU/cmake-kernel.
 # 依赖管理
 
+# 设置依赖下载路径
+set(CPM_SOURCE_CACHE ${CMAKE_SOURCE_DIR}/3rd)
+# 优先使用本地文件
+set(CPM_USE_LOCAL_PACKAGES True)
 # https://github.com/cpm-cmake/CPM.cmake
-include(CPM)
+# -------- get_cpm.cmake --------
+set(CPM_DOWNLOAD_VERSION 0.38.2)
+
+if(CPM_SOURCE_CACHE)
+  set(CPM_DOWNLOAD_LOCATION "${CPM_SOURCE_CACHE}/cpm/CPM_${CPM_DOWNLOAD_VERSION}.cmake")
+elseif(DEFINED ENV{CPM_SOURCE_CACHE})
+  set(CPM_DOWNLOAD_LOCATION "$ENV{CPM_SOURCE_CACHE}/cpm/CPM_${CPM_DOWNLOAD_VERSION}.cmake")
+else()
+  set(CPM_DOWNLOAD_LOCATION "${CMAKE_BINARY_DIR}/cmake/CPM_${CPM_DOWNLOAD_VERSION}.cmake")
+endif()
+
+# Expand relative path. This is important if the provided path contains a tilde (~)
+get_filename_component(CPM_DOWNLOAD_LOCATION ${CPM_DOWNLOAD_LOCATION} ABSOLUTE)
+
+function(download_cpm)
+  message(STATUS "Downloading CPM.cmake to ${CPM_DOWNLOAD_LOCATION}")
+  file(DOWNLOAD
+       https://github.com/cpm-cmake/CPM.cmake/releases/download/v${CPM_DOWNLOAD_VERSION}/CPM.cmake
+       ${CPM_DOWNLOAD_LOCATION}
+  )
+endfunction()
+
+if(NOT (EXISTS ${CPM_DOWNLOAD_LOCATION}))
+  download_cpm()
+else()
+  # resume download if it previously failed
+  file(READ ${CPM_DOWNLOAD_LOCATION} check)
+  if("${check}" STREQUAL "")
+    download_cpm()
+  endif()
+  unset(check)
+endif()
+
+include(${CPM_DOWNLOAD_LOCATION})
+# -------- get_cpm.cmake --------
 
 # https://github.com/google/googletest
 CPMAddPackage(
@@ -74,21 +112,22 @@ CPMAddPackage(
   VERSION 1.3
   DOWNLOAD_ONLY True
 )
-# 编译 opensbi
-add_custom_target(opensbi
-        WORKING_DIRECTORY ${opensbi_SOURCE_DIR}
-        COMMAND
-          make
-          # @todo 这个工具链只在 ubuntu 上测试过
-          CROSS_COMPILE=riscv64-linux-gnu-
-          FW_JUMP=y 
-          FW_JUMP_ADDR=0x80200000
-          PLATFORM_RISCV_XLEN=64
-          PLATFORM=generic
-          O=${opensbi_BINARY_DIR}
-        COMMENT "build opensbi..."
-)
-
+if (opensbi_ADDED)
+  # 编译 opensbi
+  add_custom_target(opensbi
+          WORKING_DIRECTORY ${opensbi_SOURCE_DIR}
+          COMMAND
+            make
+            # @todo 这个工具链只在 ubuntu 上测试过
+            CROSS_COMPILE=riscv64-linux-gnu-
+            FW_JUMP=y 
+            FW_JUMP_ADDR=0x80200000
+            PLATFORM_RISCV_XLEN=64
+            PLATFORM=generic
+            O=${opensbi_BINARY_DIR}
+          COMMENT "build opensbi..."
+  )
+endif()
 # https://gitlab.com/bztsrc/posix-uefi
 CPMAddPackage(
   NAME posix-uefi
@@ -96,25 +135,27 @@ CPMAddPackage(
   GIT_TAG a643ed09f52575d402b934d6f1c6f08c64fd8c64
   DOWNLOAD_ONLY True
 )
-# 编译 posix-uefi
-add_custom_target(posix-uefi
-        WORKING_DIRECTORY ${posix-uefi_SOURCE_DIR}/uefi
-        COMMAND
-          USE_GCC=1
-          ARCH=${TARGET_ARCH}
-          make
-        COMMAND 
-          ${CMAKE_COMMAND} 
-          -E 
-          copy 
-          ${posix-uefi_SOURCE_DIR}/build/uefi/*
-          ${posix-uefi_BINARY_DIR}
-        COMMAND
-          make clean
-        COMMAND
-          rm -rf ${posix-uefi_SOURCE_DIR}/build
-        COMMENT "build posix-uefi..."
-)
+if (posix-uefi_ADDED)
+  # 编译 posix-uefi
+  add_custom_target(posix-uefi
+          WORKING_DIRECTORY ${posix-uefi_SOURCE_DIR}/uefi
+          COMMAND
+            USE_GCC=1
+            ARCH=${TARGET_ARCH}
+            make
+          COMMAND 
+            ${CMAKE_COMMAND} 
+            -E 
+            copy 
+            ${posix-uefi_SOURCE_DIR}/build/uefi/*
+            ${posix-uefi_BINARY_DIR}
+          COMMAND
+            make clean
+          COMMAND
+            rm -rf ${posix-uefi_SOURCE_DIR}/build
+          COMMENT "build posix-uefi..."
+  )
+endif()
 
 # https://sourceforge.net/projects/gnu-efi/
 CPMAddPackage(
@@ -123,21 +164,23 @@ CPMAddPackage(
   VERSION 3.0.17
   DOWNLOAD_ONLY True
 )
-# 编译 gnu-efi
-add_custom_target(gnu-efi
-        WORKING_DIRECTORY ${gnu-efi_SOURCE_DIR}
-        COMMAND
-          make
-          ARCH=${TARGET_ARCH}
-          OBJDIR=${gnu-efi_BINARY_DIR}
-        COMMAND 
-          ${CMAKE_COMMAND} 
-          -E 
-          copy 
-          ${gnu-efi_SOURCE_DIR}/gnuefi/elf_${TARGET_ARCH}_efi.lds 
-          ${gnu-efi_BINARY_DIR}/link.ld
-        COMMENT "build gnu-efi..."
-)
+if (gnu-efi_ADDED)
+  # 编译 gnu-efi
+  add_custom_target(gnu-efi
+          WORKING_DIRECTORY ${gnu-efi_SOURCE_DIR}
+          COMMAND
+            make
+            ARCH=${TARGET_ARCH}
+            OBJDIR=${gnu-efi_BINARY_DIR}
+          COMMAND 
+            ${CMAKE_COMMAND} 
+            -E 
+            copy 
+            ${gnu-efi_SOURCE_DIR}/gnuefi/elf_${TARGET_ARCH}_efi.lds 
+            ${gnu-efi_BINARY_DIR}/link.ld
+          COMMENT "build gnu-efi..."
+  )
+endif ()
 
 # https://github.com/gdbinit/Gdbinit
 # @todo 下载下来的文件为 makefile 形式，需要自己编译
@@ -173,6 +216,8 @@ CPMAddPackage(
   GITHUB_REPOSITORY cpm-cmake/CPMLicenses.cmake
   VERSION 0.0.7
 )
-cpm_licenses_create_disclaimer_target(
-  write-licenses "${CMAKE_CURRENT_SOURCE_DIR}/3rd/LICENSE" "${CPM_PACKAGES}"
-)
+if (gnu-efi_ADDED)
+  cpm_licenses_create_disclaimer_target(
+    write-licenses "${CMAKE_CURRENT_SOURCE_DIR}/3rd/LICENSE" "${CPM_PACKAGES}"
+  )
+endif ()
