@@ -32,22 +32,23 @@ CPMAddPackage(
 # target_link_libraries(<<Target>> PRIVATE easyloggingpp <<etc>>)
 
 # https://github.com/rttrorg/rttr
-CPMAddPackage(
-  NAME rttr # link against RTTR::Core_Lib
-  VERSION 0.9.6
-  GITHUB_REPOSITORY rttrorg/rttr
-  OPTIONS
-    "BUILD_RTTR_DYNAMIC Off"
-    "BUILD_UNIT_TESTS Off"
-    "BUILD_STATIC On"
-    "BUILD_PACKAGE Off"
-    "BUILD_WITH_RTTI On"
-    "BUILD_EXAMPLES Off"
-    "BUILD_DOCUMENTATION Off"
-    "BUILD_INSTALLER Off"
-    "USE_PCH Off"
-    "CUSTOM_DOXYGEN_STYLE Off"
-)
+# @bug 打开这个会导致编译参数中多出来几个
+# CPMAddPackage(
+#   NAME rttr # link against RTTR::Core_Lib
+#   VERSION 0.9.6
+#   GITHUB_REPOSITORY rttrorg/rttr
+#   OPTIONS
+#     "BUILD_RTTR_DYNAMIC Off"
+#     "BUILD_UNIT_TESTS Off"
+#     "BUILD_STATIC On"
+#     "BUILD_PACKAGE Off"
+#     "BUILD_WITH_RTTI On"
+#     "BUILD_EXAMPLES Off"
+#     "BUILD_DOCUMENTATION Off"
+#     "BUILD_INSTALLER Off"
+#     "USE_PCH Off"
+#     "CUSTOM_DOXYGEN_STYLE Off"
+# )
 
 # https://github.com/TheLartians/Format.cmake
 CPMAddPackage(
