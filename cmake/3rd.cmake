@@ -68,7 +68,63 @@ if (freetype_ADDED)
   add_library(Freetype::Freetype ALIAS freetype)
 endif()
 
+# https://github.com/riscv-software-src/opensbi
+# @todo 下载下来的文件为 makefile 形式，需要自己编译
+CPMAddPackage(
+  NAME opensbi
+  GIT_REPOSITORY https://github.com/riscv-software-src/opensbi.git
+  GIT_TAG v1.3
+  VERSION 1.3
+  DOWNLOAD_ONLY True
+)
+
+# https://gitlab.com/bztsrc/posix-uefi
+# @todo 下载下来的文件为 makefile 形式，需要自己编译
+CPMAddPackage(
+  NAME poxis-uefi
+  GIT_REPOSITORY https://gitlab.com/bztsrc/posix-uefi.git
+  GIT_TAG a643ed09f52575d402b934d6f1c6f08c64fd8c64
+  DOWNLOAD_ONLY True
+)
+
+# https://sourceforge.net/projects/gnu-efi/
+# @todo 下载下来的文件为 makefile 形式，需要自己编译
+CPMAddPackage(
+  NAME gnu-efi
+  URL "https://sourceforge.net/projects/gnu-efi/files/gnu-efi-3.0.17.tar.bz2"
+  VERSION 3.0.17
+  DOWNLOAD_ONLY True
+)
+
+# https://github.com/gdbinit/Gdbinit
+# @todo 下载下来的文件为 makefile 形式，需要自己编译
+CPMAddPackage(
+  NAME gdbinit
+  GIT_REPOSITORY https://github.com/gdbinit/Gdbinit.git
+  GIT_TAG e5138c24226bdd05360ca41743d8315a9e366c40
+  DOWNLOAD_ONLY True
+)
+
+# https://github.com/gdbinit/lldbinit
+# @todo 下载下来的文件为 makefile 形式，需要自己编译
+CPMAddPackage(
+  NAME lldbinit
+  GIT_REPOSITORY https://github.com/gdbinit/lldbinit.git
+  GIT_TAG 1fe8df74ccd80836ddae73da4207dc63fcaf388a
+  DOWNLOAD_ONLY True
+)
+
+# https://github.com/tianocore/edk2
+# @todo 下载下来的文件为 makefile 形式，需要自己编译
+CPMAddPackage(
+  NAME edk2
+  GIT_REPOSITORY https://github.com/tianocore/edk2.git
+  GIT_TAG edk2-stable202305
+  DOWNLOAD_ONLY True
+)
+
 # https://github.com/cpm-cmake/CPMLicenses.cmake
+# 保持在文件最后
 CPMAddPackage(
   NAME CPMLicenses.cmake 
   GITHUB_REPOSITORY cpm-cmake/CPMLicenses.cmake
