@@ -28,8 +28,6 @@ CPMAddPackage(
   "build_static_lib ON"
   "lib_utc_datetime ON"
 )
-# target_include_directories(<<Target>> SYSTEM PRIVATE "${easylogingpp_SOURCE_DIR}/src" <<etc>>)
-# target_link_libraries(<<Target>> PRIVATE easyloggingpp <<etc>>)
 
 # https://github.com/rttrorg/rttr
 # @bug 打开这个会导致编译参数中多出来几个
@@ -69,7 +67,6 @@ if (freetype_ADDED)
 endif()
 
 # https://github.com/riscv-software-src/opensbi
-# @todo 下载下来的文件为 makefile 形式，需要自己编译
 CPMAddPackage(
   NAME opensbi
   GIT_REPOSITORY https://github.com/riscv-software-src/opensbi.git
@@ -77,23 +74,69 @@ CPMAddPackage(
   VERSION 1.3
   DOWNLOAD_ONLY True
 )
+# 编译 opensbi
+add_custom_target(opensbi
+        WORKING_DIRECTORY ${opensbi_SOURCE_DIR}
+        COMMAND
+          make
+          # @todo 这个工具链只在 ubuntu 上测试过
+          CROSS_COMPILE=riscv64-linux-gnu-
+          FW_JUMP=y 
+          FW_JUMP_ADDR=0x80200000
+          PLATFORM_RISCV_XLEN=64
+          PLATFORM=generic
+          O=${opensbi_BINARY_DIR}
+        COMMAND 
+          ${CMAKE_COMMAND} 
+          -E 
+          copy
+          ${opensbi_BINARY_DIR}/platform/generic/firmware/fw_jump.elf
+          ${CMAKE_BINARY_DIR}/firmware/fw_jump.elf
+        COMMENT "build opensbi..."
+)
 
 # https://gitlab.com/bztsrc/posix-uefi
-# @todo 下载下来的文件为 makefile 形式，需要自己编译
 CPMAddPackage(
-  NAME poxis-uefi
+  NAME posix-uefi
   GIT_REPOSITORY https://gitlab.com/bztsrc/posix-uefi.git
   GIT_TAG a643ed09f52575d402b934d6f1c6f08c64fd8c64
   DOWNLOAD_ONLY True
 )
+# 编译 posix-uefi
+add_custom_target(posix-uefi
+        WORKING_DIRECTORY ${posix-uefi_SOURCE_DIR}/uefi
+        COMMAND
+          USE_GCC=1
+          ARCH=${TARGET_ARCH}
+          make
+        COMMAND 
+          ${CMAKE_COMMAND} 
+          -E 
+          copy 
+          ${posix-uefi_SOURCE_DIR}/build/uefi/*
+          ${posix-uefi_BINARY_DIR}
+        COMMAND
+          make clean
+        COMMAND
+          rm -rf ${posix-uefi_SOURCE_DIR}/build
+        COMMENT "build posix-uefi..."
+)
 
 # https://sourceforge.net/projects/gnu-efi/
-# @todo 下载下来的文件为 makefile 形式，需要自己编译
 CPMAddPackage(
   NAME gnu-efi
   URL "https://sourceforge.net/projects/gnu-efi/files/gnu-efi-3.0.17.tar.bz2"
   VERSION 3.0.17
   DOWNLOAD_ONLY True
+)
+# 编译 gnu-efi
+add_custom_target(gnu-efi
+        WORKING_DIRECTORY ${gnu-efi_SOURCE_DIR}
+        COMMAND
+          make
+          ARCH=${TARGET_ARCH}
+          OBJDIR=${gnu-efi_BINARY_DIR}
+        COMMENT "build gnu-efi..."
 )
 
 # https://github.com/gdbinit/Gdbinit
