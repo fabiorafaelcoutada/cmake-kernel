@@ -135,6 +135,8 @@ set(DEFAULT_COMPILE_OPTIONS
         -fexceptions 
         # 使用 2 字节 wchar_t
         -fshort-wchar
+        # 允许 wchar_t
+        -fpermissive
         
         # 目标平台编译选项
         # @todo clang 交叉编译参数

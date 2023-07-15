@@ -118,6 +118,11 @@ if (opensbi_ADDED)
           # make 时编译
           ALL
           WORKING_DIRECTORY ${opensbi_SOURCE_DIR}
+          COMMAND 
+          ${CMAKE_COMMAND} 
+          -E 
+          make_directory 
+          ${opensbi_BINARY_DIR}
           COMMAND
             make
             # @todo 这个工具链只在 ubuntu 上测试过
@@ -153,6 +158,11 @@ if (posix-uefi_ADDED)
             USE_GCC=1
             ARCH=${TARGET_ARCH}
             make
+          COMMAND 
+            ${CMAKE_COMMAND} 
+            -E 
+            make_directory 
+            ${posix-uefi_BINARY_DIR}
           COMMAND 
             ${CMAKE_COMMAND} 
             -E 
@@ -214,6 +224,11 @@ if (gnu-efi_ADDED)
           # make 时编译
           ALL
           WORKING_DIRECTORY ${gnu-efi_SOURCE_DIR}
+          COMMAND 
+          ${CMAKE_COMMAND} 
+          -E 
+          make_directory 
+          ${gnu-efi_BINARY_DIR}
           COMMAND
             make
             ARCH=${TARGET_ARCH}

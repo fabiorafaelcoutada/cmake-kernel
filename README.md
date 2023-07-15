@@ -122,22 +122,25 @@
 
 根目录 CMakeList.txt 可用参数如下
 
-|          参数          |          合法值          | 类型 |    默认    | 说明                                 |
-| :--------------------: | :----------------------: | :--: | :--------: | ------------------------------------ |
-|  ENABLE_BUILD_RELEASE  |          ON/OFF          | BOOL |    OFF     | 是否为发布版                         |
-| ENABLE_GENERATOR_MAKE  |          ON/OFF          | BOOL |     ON     | 是否使用 make 构建，OFF 则使用 ninja |
-|  ENABLE_COMPILER_GNU   |          ON/OFF          | BOOL |     ON     | 是否使用 gcc，OFF 则使用 clang       |
-|  ENABLE_TEST_COVERAGE  |          ON/OFF          | BOOL |     ON     | 是否开启测试覆盖率                   |
-|        PLATFORM        |           qemu           | STR  |    qemu    | 运行的平台                           |
-|      TARGET_ARCH       | x86_64, riscv64, aarch64 | STR  |   x86_64   | 目标架构                             |
-|  BOOT_ELF_OUTPUT_NAME  |                          | STR  |  boot.elf  | 引导 elf 文件名                      |
-|  BOOT_EFI_OUTPUT_NAME  |                          | STR  |  boot.efi  | 引导 efi 文件名                      |
-| KERNEL_ELF_OUTPUT_NAME |                          | STR  | kernel.elf | 内核 elf 文件名                      |
-| KERNEL_EFI_OUTPUT_NAME |                          | STR  | kernel.efi | 内核 efi 文件名                      |
-|                        |                          |      |            |                                      |
-|                        |                          |      |            |                                      |
-|                        |                          |      |            |                                      |
-|                        |                          |      |            |                                      |
+|          参数          |          合法值          | 类型 |    默认    | 说明                                    |
+| :--------------------: | :----------------------: | :--: | :--------: | --------------------------------------- |
+|  ENABLE_BUILD_RELEASE  |          ON/OFF          | BOOL |    OFF     | 是否为发布版                            |
+| ENABLE_GENERATOR_MAKE  |          ON/OFF          | BOOL |     ON     | 是否使用 make 构建，OFF 则使用 ninja    |
+|  ENABLE_COMPILER_GNU   |          ON/OFF          | BOOL |     ON     | 是否使用 gcc，OFF 则使用 clang          |
+|     ENABLE_GNU_EFI     |          ON/OFF          | BOOL |     ON     | 是否使用 gnu-efi，OFF 则使用 posix-uefi |
+|  ENABLE_TEST_COVERAGE  |          ON/OFF          | BOOL |     ON     | 是否开启测试覆盖率                      |
+|        PLATFORM        |           qemu           | STR  |    qemu    | 运行的平台                              |
+|      TARGET_ARCH       | x86_64, riscv64, aarch64 | STR  |   x86_64   | 目标架构                                |
+|  BOOT_ELF_OUTPUT_NAME  |                          | STR  |  boot.elf  | 引导 elf 文件名                         |
+|  BOOT_EFI_OUTPUT_NAME  |                          | STR  |  boot.efi  | 引导 efi 文件名                         |
+| KERNEL_ELF_OUTPUT_NAME |                          | STR  | kernel.elf | 内核 elf 文件名                         |
+| KERNEL_EFI_OUTPUT_NAME |                          | STR  | kernel.efi | 内核 efi 文件名                         |
+|                        |                          |      |            |                                         |
+|                        |                          |      |            |                                         |
+|                        |                          |      |            |                                         |
+|                        |                          |      |            |                                         |
+
+
 
 ```shell
 cmake \

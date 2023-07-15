@@ -14,16 +14,16 @@
  * </table>
  */
 
-
 #if ENABLE_GNU_EFI == 1
 #    include "gnu-efi/efi.h"
 #    include "gnu-efi/efilib.h"
 #else
-#    include "posix-uefi/elf.h"
+#    include "elf.h"
 #    include "posix-uefi/uefi.h"
 #endif
 
-#include "kernel.h"
+/// 内核入口函数指针
+typedef int32_t (*entry_func)(int32_t, int8_t **);
 
 /// @todo 内核名称，由 cmake 传入
 #define KERNEL_ELF_OUTPUT_NAME "kernel.elf"
