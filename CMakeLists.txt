@@ -4,16 +4,6 @@
 #
 # CMakeLists.txt for MRNIU/cmake-kernel.
 
-# 可用的参数列表
-# ENABLE_BUILD_RELEASE  是否为发布版，默认为 OFF
-# ENABLE_GENERATOR_MAKE 是否使用 make 构建，默认为 ON
-# ENABLE_COMPILER_GNU   是否使用 gcc，默认为 ON
-# ENABLE_TEST_COVERAGE  是否开启测试覆盖率，默认为 ON
-# MACHINE               运行的平台，默认为 qemu
-# TARGET_ARCH           目标平台，默认为 x86_64
-# BOOT_NAME             启动文件名，默认为 boot.elf
-# KERNEL_NAME           内核文件名，默认为 kernel.elf
-
 # 设置最小 cmake 版本
 cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 

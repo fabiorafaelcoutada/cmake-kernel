@@ -1,5 +1,7 @@
 # cmake-kernel
 
+## 设计
+
 用于构建内核的构建系统
 
 构建系统提供的功能：
@@ -109,3 +111,35 @@
 - [ ] IDE 支持
 
     vscode，Clion
+
+
+
+## 实现
+
+
+
+## 使用
+
+根目录 CMakeList.txt 可用参数如下
+
+|         参数          |          合法值          | 类型 |    默认    | 说明                                 |
+| :-------------------: | :----------------------: | :--: | :--------: | ------------------------------------ |
+| ENABLE_BUILD_RELEASE  |          ON/OFF          | BOOL |    OFF     | 是否为发布版                         |
+| ENABLE_GENERATOR_MAKE |          ON/OFF          | BOOL |     ON     | 是否使用 make 构建，OFF 则使用 ninja |
+|  ENABLE_COMPILER_GNU  |          ON/OFF          | BOOL |     ON     | 是否使用 gcc，OFF 则使用 clang       |
+| ENABLE_TEST_COVERAGE  |          ON/OFF          | BOOL |     ON     | 是否开启测试覆盖率                   |
+|       PLATFORM        |           qemu           | STR  |    qemu    | 运行的平台                           |
+|      TARGET_ARCH      | x86_64, riscv64, aarch64 | STR  |   x86_64   | 目标架构                             |
+|       BOOT_NAME       |                          | STR  |  boot.elf  | 引导文件名                           |
+|      KERNEL_NAME      |                          | STR  | kernel.elf | 内核文件名                           |
+|                       |                          |      |            |                                      |
+
+```shell
+cmake \
+  -DTARGET_ARCH=x86_64 \
+  -DTARGET_ARCH=x86_64 \
+  -DBOOT_NAME="myboot.elf" \
+  -DKERNEL_NAME="mykernel.elf" \
+  ..
+```
+

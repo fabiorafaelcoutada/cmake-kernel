@@ -51,14 +51,14 @@ set(CMAKE_C_STANDARD 17)
 set(CMAKE_CXX_STANDARD 20)
 
 # 要运行的平台
-set(VALID_MACHINE qemu)
-if (NOT DEFINED MACHINE)
-    set(MACHINE qemu)
+set(VALID_PLATFORM qemu)
+if (NOT DEFINED PLATFORM)
+    set(PLATFORM qemu)
 endif ()
-message("MACHINE is: ${MACHINE}")
+message("PLATFORM is: ${PLATFORM}")
 # 如果不合法则报错
-if (NOT MACHINE IN_LIST VALID_MACHINE)
-    message(FATAL_ERROR "MACHINE must be one of ${VALID_MACHINE}")
+if (NOT PLATFORM IN_LIST VALID_PLATFORM)
+    message(FATAL_ERROR "PLATFORM must be one of ${VALID_PLATFORM}")
 endif ()
 
 # 目标架构

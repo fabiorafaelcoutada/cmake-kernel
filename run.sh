@@ -11,25 +11,14 @@ set -e
 # 输出实际执行内容
 #set -x
 
-MACHINE=qemu
-
 TARGET_ARCH=x86_64
 # TARGET_ARCH=riscv64
 # TARGET_ARCH=aarch64
 
-CMAKE_BUILD_TYPE=Debug
-#CMAKE_BUILD_TYPE=Release
-
-GENERATOR=make
-#GENERATOR=ninja
-
-COMPILER=gcc
-#COMPILER=clang
-
 # 重新编译
 mkdir -p ./build_${TARGET_ARCH}/
 cd ./build_${TARGET_ARCH}
-# @note 在使用 CLion 时，在 ide 内部添加 -DUSE_IDE=ON 以让 ide 自动处理 cmake
+# @todo 在使用 CLion 时，在 ide 内部添加 -DUSE_IDE=ON 以让 ide 自动处理 cmake
 cmake \
   -DTARGET_ARCH=${TARGET_ARCH} \
   ..
