@@ -333,3 +333,10 @@ if (gnu-efi_ADDED)
     write-licenses "${CMAKE_CURRENT_SOURCE_DIR}/3rd/LICENSE" "${CPM_PACKAGES}"
   )
 endif ()
+# make 时自动在 3rd 文件夹下生成 LICENSE 文件
+add_custom_target(3rd_licenses
+  ALL
+  COMMAND
+  make
+  write-licenses
+)
