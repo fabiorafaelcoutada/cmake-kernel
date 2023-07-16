@@ -101,7 +101,7 @@ add_custom_command(TARGET image_uefi
         COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/tools/startup.nsh ${CMAKE_BINARY_DIR}/image/startup.nsh
         )
 
-        # 制作镜像
+# 制作镜像
 add_custom_target(image DEPENDS image_uefi)
 add_custom_command(TARGET image
         POST_BUILD
@@ -133,10 +133,21 @@ endif ()
 
 # 运行 QEMU
 # qemu 配置
-set(QEMU_FLAGS -serial stdio -monitor telnet::2333,server,nowait)
-if (CMAKE_BUILD_TYPE STREQUAL Debug)
-#        set(QEMU_DEBUG -S -gdb tcp::1234)
-endif ()
+set(QEMU_FLAGS 
+        # 使用标准输出显示
+        -serial stdio 
+        # 启动 telnet 服务，使用 2333 端口，不等待连接
+        -monitor telnet::2333,server,nowait)
+
+if (ENABLE_DEBUG)
+        # 设置 gdb 参数
+        set(QEMU_DEBUG 
+                # 等待 gdb 连接
+                -S 
+                # 使用 1234 端口
+                -gdb tcp::1234
+        )
+endif()
 
 if (TARGET_ARCH STREQUAL "riscv64")
     set(QEMU_MACHINE -machine virt)

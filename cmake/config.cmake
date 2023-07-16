@@ -35,6 +35,8 @@ set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
     ${SCRIPTS_FILE_OUTPUT_DIRECTORY}
     # 清除缓存
     ${CMAKE_BINARY_DIR}/CMakeCache.txt
+    # 删除 .gdbinit
+    ${CMAKE_SOURCE_DIR}/.gdbinit
 )
 
 # 是否为发布版，默认为 OFF
@@ -44,7 +46,9 @@ option(ENABLE_GENERATOR_MAKE "Use make or ninja" ON)
 # 是否使用 gcc，默认为 ON
 option(ENABLE_COMPILER_GNU "Use gcc or clang" ON)
 # 是否使用 gnu-efi，默认为 ON，仅在 x86_64 平台有效
-option(ENABLE_GNU_EFI "Use gnu efi" OFF)
+option(ENABLE_GNU_EFI "Use gnu efi" ON)
+# 是否开启调试，默认为 OFF
+option(ENABLE_DEBUG "Enable debug" OFF)
 # 是否开启测试覆盖率，默认为 ON
 option(ENABLE_TEST_COVERAGE "Enable test coverage" ON)
 
@@ -178,7 +182,6 @@ set(DEFAULT_COMPILE_OPTIONS
         
         # 平台相关
         $<$<PLATFORM_ID:Darwin>:
-            -pthread
         >
 )
 

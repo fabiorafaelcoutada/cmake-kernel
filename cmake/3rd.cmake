@@ -302,6 +302,23 @@ CPMAddPackage(
   GIT_TAG e5138c24226bdd05360ca41743d8315a9e366c40
   DOWNLOAD_ONLY True
 )
+if (gdbinit_ADDED)
+  if (ENABLE_DEBUG)
+  add_custom_target(gdbinit
+    # make 时编译
+    ALL
+    WORKING_DIRECTORY ${gdbinit_SOURCE_DIR}
+    COMMENT "build gnu-efi..."
+    # 复制到根目录下并重命名
+    COMMAND 
+      ${CMAKE_COMMAND} 
+      -E
+      copy 
+      ${gdbinit_SOURCE_DIR}/gdbinit
+      ${CMAKE_SOURCE_DIR}/.gdbinit
+)
+  endif()
+endif()
 
 # https://github.com/gdbinit/lldbinit
 # @todo 下载下来的文件为 makefile 形式，需要自己编译
