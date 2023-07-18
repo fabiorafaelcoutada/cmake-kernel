@@ -193,6 +193,38 @@ set(DEFAULT_LINK_OPTIONS
         >
 )
 
+# qemu 参数设置
+set(QEMU_FLAGS 
+        # 使用标准输出显示
+        -serial stdio 
+        # 启动 telnet 服务，使用 2333 端口，不等待连接
+        -monitor telnet::2333,server,nowait
+        # 启用调试
+        $<$<BOOL:${ENABLE_DEBUG}>:
+            # 等待 gdb 连接
+            -S
+            # 使用 1234 端口
+            -gdb tcp::1234
+        >
+        # 目标平台参数
+        $<$<STREQUAL:${TARGET_ARCH},x86_64>:
+            -m 128M
+            -net none
+            -hda fat:rw:${CMAKE_BINARY_DIR}/image/
+        >
+        $<$<STREQUAL:${TARGET_ARCH},riscv64>:
+            -machine virt
+            -nographic
+            -kernel ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${KERNEL_ELF_OUTPUT_NAME}
+        >
+        $<$<STREQUAL:${TARGET_ARCH},aarch64>:
+            -machine virt 
+            -cpu cortex-a72
+            -net none
+            -drive format=raw,file=${CMAKE_BINARY_DIR}/kernel.img
+        >
+)
+
 # 设置二进制文件名称
 if (NOT DEFINED BOOT_ELF_OUTPUT_NAME)
     set(BOOT_ELF_OUTPUT_NAME boot.elf)

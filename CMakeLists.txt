@@ -77,56 +77,22 @@ elseif (TARGET_ARCH STREQUAL "aarch64")
 endif ()
 
 # 运行 QEMU
-# qemu 配置
-set(QEMU_FLAGS 
-        # 使用标准输出显示
-        -serial stdio 
-        # 启动 telnet 服务，使用 2333 端口，不等待连接
-        -monitor telnet::2333,server,nowait)
-
-if (ENABLE_DEBUG)
-        # 设置 gdb 参数
-        set(QEMU_DEBUG 
-                # 等待 gdb 连接
-                -S 
-                # 使用 1234 端口
-                -gdb tcp::1234
-        )
-endif()
-
 if (TARGET_ARCH STREQUAL "riscv64")
-    set(QEMU_MACHINE -machine virt)
-    set(QEMU_DEVICES -nographic)
-    set(QEMU_IMAGE -kernel ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${KERNEL_ELF_OUTPUT_NAME})
-    add_custom_target(run DEPENDS kernel)
-    add_custom_command(
+    add_custom_target(run DEPENDS kernel
             TARGET run
             COMMENT "Run SimpleKernel in qemu."
-            COMMAND qemu-system-${TARGET_ARCH} ${QEMU_FLAGS} ${QEMU_MACHINE} ${QEMU_DEVICES} ${QEMU_FIRMWARE} ${QEMU_IMAGE} ${QEMU_DEBUG}
+            COMMAND qemu-system-${TARGET_ARCH} ${QEMU_FLAGS}
     )
-
 elseif (TARGET_ARCH STREQUAL "x86_64")
-    set(QEMU_MACHINE -m 128M)
-    set(QEMU_DEVICES -net none)
-    set(QEMU_IMAGE -hda fat:rw:${CMAKE_BINARY_DIR}/image/)
-    list(APPEND QEMU_FLAGS)
-    add_custom_target(run DEPENDS image_uefi)
-    add_custom_command(
+    add_custom_target(run DEPENDS image_uefi
             TARGET run
             COMMENT "Run SimpleKernel in qemu."
-            COMMAND qemu-system-${TARGET_ARCH} ${QEMU_FLAGS} ${QEMU_MACHINE} ${QEMU_DEVICES} ${QEMU_FIRMWARE} ${QEMU_IMAGE} ${QEMU_DEBUG}
+            COMMAND qemu-system-${TARGET_ARCH} ${QEMU_FLAGS}
     )
-
 elseif (TARGET_ARCH STREQUAL "aarch64")
-    set(QEMU_MACHINE -machine virt -cpu cortex-a72)
-    set(QEMU_DEVICES -net none)
-    #    set(QEMU_IMAGE -hda fat:rw:${CMAKE_BINARY_DIR}/image/)
-    set(QEMU_IMAGE -drive format=raw,file=${CMAKE_BINARY_DIR}/kernel.img)
-    add_custom_target(run DEPENDS image_uefi)
-    add_custom_command(
+    add_custom_target(run DEPENDS image_uefi
             TARGET run
             COMMENT "Run SimpleKernel in qemu."
-            COMMAND qemu-system-${TARGET_ARCH} ${QEMU_FLAGS} ${QEMU_MACHINE} ${QEMU_DEVICES} ${QEMU_FIRMWARE} ${QEMU_IMAGE} ${QEMU_DEBUG}
+            COMMAND qemu-system-${TARGET_ARCH} ${QEMU_FLAGS}
     )
-
 endif ()
