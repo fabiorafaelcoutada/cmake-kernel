@@ -9,9 +9,9 @@
 # _elf: elf 文件 target
 # 在 ${${_elf}_BINARY_DIR} 目录下生成 ${_elf}.readelf 文件
 function(readelf_a _elf)
-    add_custom_target(readelf_a_${_elf} DEPENDS ${_elf})
-    add_custom_command(TARGET readelf_a_${_elf}
+    add_custom_target(readelf_a_${_elf} 
         COMMENT "readelf -a ${_elf} ..."
+        DEPENDS ${_elf}
         POST_BUILD
         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
         COMMAND ${CMAKE_READELF} -a ${${_elf}_BINARY_DIR}/${_elf} > ${${_elf}_BINARY_DIR}/${_elf}.readelf || (exit 0)
@@ -22,9 +22,9 @@ endfunction()
 # _elf: elf 文件 target
 # 在 ${${_elf}_BINARY_DIR} 目录下生成 ${_elf}.disassembly 文件 
 function(objdump_D _elf)
-    add_custom_target(objdump_D_${_elf} DEPENDS ${_elf})
-    add_custom_command(TARGET objdump_D_${_elf}
+    add_custom_target(objdump_D_${_elf} 
         COMMENT "objdump -D ${_elf} ..."
+        DEPENDS ${_elf}
         POST_BUILD
         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
         COMMAND ${CMAKE_OBJDUMP} -D ${${_elf}_BINARY_DIR}/${_elf} > ${${_elf}_BINARY_DIR}/${_elf}.disassembly
@@ -36,9 +36,9 @@ endfunction()
 # _efi: 输出的 efi 文件 target
 # 在 ${${_elf}_BINARY_DIR} 目录下生成 ${_efi} 文件
 function(elf2efi _elf _efi)
-    add_custom_target(${_efi} DEPENDS ${_elf})
-    add_custom_command(TARGET ${_efi}
+    add_custom_target(${_efi}
         COMMENT "Building ${_efi} ..."
+        DEPENDS ${_elf}
         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
         COMMAND ${CMAKE_OBJCOPY} ${${_elf}_BINARY_DIR}/${_elf} ${${_elf}_BINARY_DIR}/${_efi}
         -g -R .comment -R .gnu_debuglink -R .note.gnu.build-id

@@ -57,8 +57,6 @@ include(${CPM_DOWNLOAD_LOCATION})
 #       "gtest_force_shared_crt ON"
 # )
 
-message(STATUS "googletest_SOURCE_DIR: ${googletest_BINARY_DIR}")
-
 # # https://github.com/abumq/easyloggingpp
 # CPMAddPackage(
 #   NAME easylogingpp
@@ -185,25 +183,25 @@ CPMAddPackage(
 if (gnu-efi_ADDED)
   # 编译 gnu-efi
   add_custom_target(gnu-efi
-          # make 时编译
-          ALL
-          WORKING_DIRECTORY ${gnu-efi_SOURCE_DIR}
-          COMMAND 
-            ${CMAKE_COMMAND} 
-            -E 
-            make_directory 
-          ${gnu-efi_BINARY_DIR}
-          COMMAND
-            make
-            ARCH=${TARGET_ARCH}
-            OBJDIR=${gnu-efi_BINARY_DIR}
-          COMMAND 
-            ${CMAKE_COMMAND} 
-            -E 
-            copy_directory 
-            ${gnu-efi_SOURCE_DIR}/inc
-            ${gnu-efi_BINARY_DIR}/inc
-          COMMENT "build gnu-efi..."
+    COMMENT "build gnu-efi..."
+    # make 时编译
+    ALL
+    WORKING_DIRECTORY ${gnu-efi_SOURCE_DIR}
+    COMMAND 
+      ${CMAKE_COMMAND} 
+      -E 
+      make_directory 
+    ${gnu-efi_BINARY_DIR}
+    COMMAND
+      make
+      ARCH=${TARGET_ARCH}
+      OBJDIR=${gnu-efi_BINARY_DIR}
+    COMMAND 
+      ${CMAKE_COMMAND} 
+      -E 
+      copy_directory 
+      ${gnu-efi_SOURCE_DIR}/inc
+      ${gnu-efi_BINARY_DIR}/inc
   )
 endif ()
 
@@ -215,6 +213,7 @@ CPMAddPackage(
 )
 if (ovmf_ADDED)
   add_custom_target(ovmf
+    COMMENT "build ovmf..."
     # make 时编译
     ALL
     WORKING_DIRECTORY ${ovmf_SOURCE_DIR}
@@ -224,7 +223,6 @@ if (ovmf_ADDED)
       copy
       ${ovmf_SOURCE_DIR}/*
       ${ovmf_BINARY_DIR}
-    COMMENT "build ovmf..."
   )
 endif()
 
@@ -240,10 +238,10 @@ CPMAddPackage(
 if (gdbinit_ADDED)
   if (ENABLE_DEBUG)
   add_custom_target(gdbinit
+    COMMENT "build gnu-efi..."
     # make 时编译
     ALL
     WORKING_DIRECTORY ${gdbinit_SOURCE_DIR}
-    COMMENT "build gnu-efi..."
     # 复制到根目录下并重命名
     COMMAND 
       ${CMAKE_COMMAND} 
