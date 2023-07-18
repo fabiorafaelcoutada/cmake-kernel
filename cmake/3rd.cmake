@@ -213,7 +213,7 @@ CPMAddPackage(
 )
 if (ovmf_ADDED)
   add_custom_target(ovmf
-    COMMENT "build ovmf..."
+    COMMENT "build ovmf ..."
     # make 时编译
     ALL
     WORKING_DIRECTORY ${ovmf_SOURCE_DIR}
@@ -238,7 +238,7 @@ CPMAddPackage(
 if (gdbinit_ADDED)
   if (ENABLE_DEBUG)
   add_custom_target(gdbinit
-    COMMENT "build gnu-efi..."
+    COMMENT "build gnu-efi ..."
     # make 时编译
     ALL
     WORKING_DIRECTORY ${gdbinit_SOURCE_DIR}
