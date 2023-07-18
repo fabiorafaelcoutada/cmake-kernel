@@ -18,14 +18,8 @@
 extern "C" {
 #endif
 
-#if ENABLE_GNU_EFI == 1
-#    include "gnu-efi/efi.h"
-#    include "gnu-efi/efilib.h"
-#else
-#    include "posix-uefi/uefi.h"
-#endif
-
-#include <elf.h>
+#include "gnu-efi/efi.h"
+#include "gnu-efi/efilib.h"
 
 EFI_STATUS
 efi_main(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE *systab) {
@@ -86,37 +80,8 @@ efi_main(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE *systab) {
 	Print(L"  li->ImageDataType:   %xh\n", li->ImageDataType);
 	Print(L"  li->Unload:          %xh\n", li->Unload);
 
-#if 0
-typedef struct {
-    UINT32                          Revision;
-    EFI_HANDLE                      ParentHandle;
-    struct _EFI_SYSTEM_TABLE        *SystemTable;
-
-    // Source location of image
-    EFI_HANDLE                      DeviceHandle;
-    EFI_DEVICE_PATH                 *FilePath;
-    VOID                            *Reserved;
-
-    // Images load options
-    UINT32                          LoadOptionsSize;
-    VOID                            *LoadOptions;
-
-    // Location of where image was loaded
-    VOID                            *ImageBase;
-    UINT64                          ImageSize;
-    EFI_MEMORY_TYPE                 ImageCodeType;
-    EFI_MEMORY_TYPE                 ImageDataType;
-
-    // If the driver image supports a dynamic unload request
-    EFI_IMAGE_UNLOAD                Unload;
-
-} EFI_LOADED_IMAGE;
-#endif
-
 	return EFI_SUCCESS;
 }
-
-
 
 #ifdef __cplusplus
 }
