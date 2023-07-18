@@ -15,6 +15,13 @@ function(add_header_libcxx _target)
         ${CMAKE_SOURCE_DIR}/src/libcxx/include)
 endfunction()
 
+function(add_header_arch _target)
+    target_include_directories(${_target} PRIVATE
+        ${CMAKE_SOURCE_DIR}/src/arch/include)
+    target_include_directories(${_target} PRIVATE
+        ${CMAKE_SOURCE_DIR}/src/arch/${TARGET_ARCH}/include)
+endfunction()
+
 function(add_header_boot _target)
     target_include_directories(${_target} PRIVATE
         ${CMAKE_SOURCE_DIR}/src/boot/include)

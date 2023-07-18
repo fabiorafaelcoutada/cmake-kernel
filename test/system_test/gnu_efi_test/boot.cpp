@@ -80,6 +80,8 @@ efi_main(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE *systab) {
 	Print(L"  li->ImageDataType:   %xh\n", li->ImageDataType);
 	Print(L"  li->Unload:          %xh\n", li->Unload);
 
+	Print(L"TEST SUCCEED!\n");
+
 	return EFI_SUCCESS;
 }
 
