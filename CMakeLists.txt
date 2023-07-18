@@ -34,82 +34,31 @@ include(add_header)
 # 导入第三方依赖
 include(3rd)
 
+# 导入函数
+include(functions)
+
 # 添加要编译的目录
-add_subdirectory(${PROJECT_SOURCE_DIR}/src)
-
-# # objcopy --only-keep-debug foo foo.dbg 创建一个包含调试信息的文件
-# add_custom_target(kernel_debug DEPENDS kernel)
-# add_custom_command(TARGET kernel_debug
-#         POST_BUILD
-#         WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-#         COMMAND ${CMAKE_OBJCOPY} --only-keep-debug ${KERNEL_ELF_OUTPUT_NAME} ${KERNEL_ELF_OUTPUT_NAME}.debug
-#         COMMENT "Generating kernel debug...")
-
-# # objcopy --strip-debug foo 创建一个去掉调试信息的( strip 的)可执行文件
-# # objcopy --add-gnu-debuglink=foo.dbg foo 为 strip 的文件添加调试信息链接
-# add_custom_target(kernel_raw DEPENDS kernel)
-# add_custom_command(TARGET kernel_raw
-#         POST_BUILD
-#         WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-#         COMMAND ${CMAKE_OBJCOPY} --strip-debug ${KERNEL_ELF_OUTPUT_NAME}
-#         COMMAND ${CMAKE_OBJCOPY} --add-gnu-debuglink=${KERNEL_ELF_OUTPUT_NAME}.debug ${KERNEL_ELF_OUTPUT_NAME}
-#         COMMENT "Generating raw kernel...")
-
-# # nm
-# add_custom_target(nm DEPENDS kernel)
-# add_custom_command(TARGET nm
-#         POST_BUILD
-#         WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-#         COMMAND ${CMAKE_NM} -a -A -C -l -n -s --special-syms --synthetic ${KERNEL_ELF_OUTPUT_NAME}
-#         > ${KERNEL_ELF_OUTPUT_NAME}.nm
-#         COMMENT "nm...")
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/test)
 
 # readelf -a
-add_custom_target(readelf_boot DEPENDS ${BOOT_ELF_OUTPUT_NAME})
-add_custom_command(TARGET readelf_boot
-        POST_BUILD
-        WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-        COMMAND ${CMAKE_READELF} -a ${BOOT_ELF_OUTPUT_NAME} > ${BOOT_ELF_OUTPUT_NAME}.readelf || (exit 0)
-        COMMENT "readelf boot...")
+readelf_a(${BOOT_ELF_OUTPUT_NAME})
 
 # objdump -D
-add_custom_target(objdump_boot DEPENDS ${BOOT_ELF_OUTPUT_NAME})
-add_custom_command(TARGET objdump_boot
-        POST_BUILD
-        WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-        COMMAND ${CMAKE_OBJDUMP} -D ${BOOT_ELF_OUTPUT_NAME} > ${BOOT_ELF_OUTPUT_NAME}.disassembly
-        COMMENT "objdump boot...")
+objdump_D(${BOOT_ELF_OUTPUT_NAME})
 
 # 制作 boot.efi
 # 将引导调整为 efi
-add_custom_target(${BOOT_EFI_OUTPUT_NAME} DEPENDS ${BOOT_ELF_OUTPUT_NAME})
-add_custom_command(TARGET ${BOOT_EFI_OUTPUT_NAME}
-        WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-        COMMAND ${CMAKE_OBJCOPY} ${BOOT_ELF_OUTPUT_NAME} ${BOOT_EFI_OUTPUT_NAME}
-        -j .text -j .sdata -j .data -j .dynamic -j .dynsym
-        -j .rel -j .rela -j .rel.* -j .rela.* -j .reloc
-        --target=efi-app-${TARGET_ARCH} --subsystem=10
-        COMMENT "Build ${BOOT_EFI_OUTPUT_NAME} done."
-        )
+elf2efi(${BOOT_ELF_OUTPUT_NAME} ${BOOT_EFI_OUTPUT_NAME})
 
-add_custom_target(image_uefi DEPENDS ${BOOT_EFI_OUTPUT_NAME} )#kernel)
+add_custom_target(image_uefi DEPENDS ${BOOT_EFI_OUTPUT_NAME} ${KERNEL_ELF_OUTPUT_NAME})
 add_custom_command(TARGET image_uefi
         COMMENT "Copying bootloader and kernel"
         COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/image/efi/boot
         COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/bin/${BOOT_EFI_OUTPUT_NAME} ${CMAKE_BINARY_DIR}/image/efi/boot/
-        # COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/bin/${KERNEL_ELF_OUTPUT_NAME} ${CMAKE_BINARY_DIR}/image/
-        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/tools/startup.nsh ${CMAKE_BINARY_DIR}/image/startup.nsh
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/bin/${KERNEL_ELF_OUTPUT_NAME} ${CMAKE_BINARY_DIR}/image/
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/tools/startup.nsh ${CMAKE_BINARY_DIR}/image/startup.nsh
         )
-
-# 制作镜像
-add_custom_target(image DEPENDS image_uefi)
-add_custom_command(TARGET image
-        POST_BUILD
-        COMMENT "Building UEFI disk image"
-        COMMAND dd if=/dev/zero of=${CMAKE_BINARY_DIR}/kernel.img bs=1M count=33
-        COMMAND mkfs.vfat ${CMAKE_BINARY_DIR}/kernel.img -F32
-        COMMAND mcopy -s -i ${CMAKE_BINARY_DIR}/kernel.img ${CMAKE_BINARY_DIR}/image/* ::
-)
 
 # 固件
 if (TARGET_ARCH STREQUAL "riscv64")
@@ -117,17 +66,13 @@ if (TARGET_ARCH STREQUAL "riscv64")
     set(QEMU_FIRMWARE -bios ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${FIRMWARE})
 elseif (TARGET_ARCH STREQUAL "x86_64")
     set(FIRMWARE OVMF_${TARGET_ARCH}.fd)
-    file(
-            COPY ${CMAKE_SOURCE_DIR}/ovmf/${FIRMWARE}
-            DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-    )
     set(QEMU_FIRMWARE -bios ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${FIRMWARE})
 elseif (TARGET_ARCH STREQUAL "aarch64")
     set(FIRMWARE ovmf-aarch64.fd)
     execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/emulation/)
     execute_process(COMMAND truncate -s 64m ${CMAKE_BINARY_DIR}/emulation/${FIRMWARE})
     execute_process(COMMAND truncate -s 64m ${CMAKE_BINARY_DIR}/emulation/nvram.img)
-    execute_process(COMMAND dd if=${CMAKE_SOURCE_DIR}/third_party/firmware/tianocore/${FIRMWARE} of=${CMAKE_BINARY_DIR}/emulation/${FIRMWARE} conv=notrunc)
+    execute_process(COMMAND dd if=${CMAKE_CURRENT_SOURCE_DIR}/third_party/firmware/tianocore/${FIRMWARE} of=${CMAKE_BINARY_DIR}/emulation/${FIRMWARE} conv=notrunc)
     set(QEMU_FIRMWARE -drive if=pflash,format=raw,file=${CMAKE_BINARY_DIR}/emulation/${FIRMWARE},readonly -drive if=pflash,format=raw,file=$(CMAKE_BINARY_DIR)/emulation/nvram.img)
 endif ()
 
