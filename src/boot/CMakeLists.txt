@@ -23,23 +23,18 @@ target_compile_options(${PROJECT_NAME} PRIVATE
     ${DEFAULT_COMPILE_OPTIONS}
     # 使用的 uefi 版本
     -DENABLE_GNU_EFI=$<BOOL:${ENABLE_GNU_EFI}>
+#     -DEFI_FUNCTION_WRAPPER -DGNU_EFI_USE_MS_ABI -DHAVE_USE_MS_ABI
 )
 
-target_link_options(${PROJECT_NAME} PRIVATE 
+target_link_options(${PROJECT_NAME} PRIVATE
         ${DEFAULT_LINK_OPTIONS}
-    
-        # 链接脚本
-        $<$<BOOL:${ENABLE_GNU_EFI}>:
-                -T ${SCRIPTS_FILE_OUTPUT_DIRECTORY}/gnu-efi/link.ld 
-        >
-        $<$<NOT:$<BOOL:${ENABLE_GNU_EFI}>>:
-                -T ${SCRIPTS_FILE_OUTPUT_DIRECTORY}/posix-uefi/link.ld 
-        >
-        # @todo 合并，现在太长了
-        # -T ${SCRIPTS_FILE_OUTPUT_DIRECTORY}/$<$<BOOL:${ENABLE_GNU_EFI}>:gnu-efi>$<$<NOT:$<BOOL:${ENABLE_GNU_EFI}>>:posix-uefi>/link.ld
+        # 不链接标准库
+        -nostdlib
+        # 编译为共享库
+        -shared
+        # 符号级别绑定
+        -Wl,-Bsymbolic
 )
-
-message("DEFAULT_COMPILE_OPTIONS: ${DEFAULT_COMPILE_OPTIONS}")
 
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${BOOT_ELF_OUTPUT_NAME})
 add_header_boot(${PROJECT_NAME})
@@ -48,8 +43,8 @@ add_header_3rd(${PROJECT_NAME})
 target_link_libraries(${PROJECT_NAME} PRIVATE
         # 根据 uefi 链接对应的库
         $<$<BOOL:${ENABLE_GNU_EFI}>:
+                # ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/gnu-efi/reloc_${TARGET_ARCH}.o
                 ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/gnu-efi/crt0-efi-${TARGET_ARCH}.o
-                ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/gnu-efi/reloc_${TARGET_ARCH}.o
                 ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/gnu-efi/libgnuefi.a
                 ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/gnu-efi/libefi.a
         >
