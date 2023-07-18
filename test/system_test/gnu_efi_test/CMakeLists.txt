@@ -30,9 +30,9 @@ target_link_options(${PROJECT_NAME} PRIVATE
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
-        ${3RD_LIBRARY_OUTPUT_DIRECTORY}/gnu-efi/crt0-efi-${TARGET_ARCH}.o
-        ${3RD_LIBRARY_OUTPUT_DIRECTORY}/gnu-efi/libgnuefi.a
-        ${3RD_LIBRARY_OUTPUT_DIRECTORY}/gnu-efi/libefi.a
+        ${gnu-efi_BINARY_DIR}/gnuefi/crt0-efi-${TARGET_ARCH}.o
+        ${gnu-efi_BINARY_DIR}/gnuefi/libgnuefi.a
+        ${gnu-efi_BINARY_DIR}/lib/libefi.a
         -T ${CMAKE_SOURCE_DIR}/src/arch/${TARGET_ARCH}/link.ld
 )
 
@@ -54,6 +54,6 @@ add_custom_command(TARGET test_gnu_efi
 	COMMAND cp ./*.efi ./image/
 	COMMAND qemu-system-x86_64 
                 -serial stdio -monitor telnet::2333,server,nowait -net none
-                -bios ${3RD_BINARY_OUTPUT_DIRECTORY}/ovmf/OVMF_${TARGET_ARCH}.fd 
+                -bios ${ovmf_BINARY_DIR}/OVMF_${TARGET_ARCH}.fd 
                 -hda fat:rw:./image/
 )

@@ -64,21 +64,21 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/src)
 #         > ${KERNEL_ELF_OUTPUT_NAME}.nm
 #         COMMENT "nm...")
 
-# # readelf -a
-# add_custom_target(readelf DEPENDS kernel)
-# add_custom_command(TARGET readelf
-#         POST_BUILD
-#         WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-#         COMMAND ${CMAKE_READELF} -a ${KERNEL_ELF_OUTPUT_NAME} > ${KERNEL_ELF_OUTPUT_NAME}.readelf || (exit 0)
-#         COMMENT "readelf...")
+# readelf -a
+add_custom_target(readelf_boot DEPENDS ${BOOT_ELF_OUTPUT_NAME})
+add_custom_command(TARGET readelf_boot
+        POST_BUILD
+        WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+        COMMAND ${CMAKE_READELF} -a ${BOOT_ELF_OUTPUT_NAME} > ${BOOT_ELF_OUTPUT_NAME}.readelf || (exit 0)
+        COMMENT "readelf boot...")
 
-# # objdump -D
-# add_custom_target(objdump DEPENDS kernel)
-# add_custom_command(TARGET objdump
-#         POST_BUILD
-#         WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-#         COMMAND ${CMAKE_OBJDUMP} -D ${KERNEL_ELF_OUTPUT_NAME} > ${KERNEL_ELF_OUTPUT_NAME}.disassembly
-#         COMMENT "objdump done.")
+# objdump -D
+add_custom_target(objdump_boot DEPENDS ${BOOT_ELF_OUTPUT_NAME})
+add_custom_command(TARGET objdump_boot
+        POST_BUILD
+        WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+        COMMAND ${CMAKE_OBJDUMP} -D ${BOOT_ELF_OUTPUT_NAME} > ${BOOT_ELF_OUTPUT_NAME}.disassembly
+        COMMENT "objdump boot...")
 
 # 制作 boot.efi
 # 将引导调整为 efi

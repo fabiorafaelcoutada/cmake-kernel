@@ -19,8 +19,8 @@ extern "C" {
 #endif
 
 #if ENABLE_GNU_EFI == 1
-#    include "gnu-efi/efi.h"
-#    include "gnu-efi/efilib.h"
+#    include "efi.h"
+#    include "efilib.h"
 #else
 #    include "posix-uefi/uefi.h"
 #endif

@@ -19,22 +19,10 @@ set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 # 在目标环境搜索头文件
 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 
-# 设置 bin、lib 的输出路径
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-# 头文件、脚本路径
-set(HEADER_FILE_OUTPUT_DIRECTORY   ${CMAKE_BINARY_DIR}/include)
-set(SCRIPTS_FILE_OUTPUT_DIRECTORY  ${CMAKE_BINARY_DIR}/scripts)
 # 设置清理目标 在 make clean 时删除文件夹
 set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES 
-    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-    ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}
-    ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
-    ${HEADER_FILE_OUTPUT_DIRECTORY}
-    ${SCRIPTS_FILE_OUTPUT_DIRECTORY}
     # 清除缓存
-    ${CMAKE_BINARY_DIR}/CMakeCache.txt
+    ${PROJECT_BINARY_DIR}/CMakeCache.txt
     # 删除 .gdbinit
     ${CMAKE_SOURCE_DIR}/.gdbinit
 )
@@ -189,19 +177,15 @@ set(DEFAULT_COMPILE_OPTIONS
 set(DEFAULT_LINK_OPTIONS)
 set(DEFAULT_LINK_OPTIONS
     PRIVATE
-        # 不链接标准库
-        -nostdlib
         # 生成位置无关代码 Position-Independent Code
-        -fPIC
+        # -fPIC
+        # 链接脚本
+        -T ${CMAKE_SOURCE_DIR}/src/arch/${TARGET_ARCH}/link.ld
         # 目标平台编译选项
         # @todo clang 交叉编译参数
         $<$<STREQUAL:${TARGET_ARCH},x86_64>:
             # 设置最大页大小为 0x1000(4096) 字节
             -z max-page-size=0x1000
-            # 编译为共享库
-            -Wl,-shared
-            # 符号级别绑定
-            -Wl,-Bsymbolic
         >
         $<$<STREQUAL:${TARGET_ARCH},riscv64>:
         >

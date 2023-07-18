@@ -39,5 +39,9 @@ endfunction()
 
 function(add_header_3rd _target)
     target_include_directories(${_target} PRIVATE
-        ${CMAKE_BINARY_DIR}/include)
+        ${gnu-efi_BINARY_DIR}/inc)
+    target_include_directories(${_target} PRIVATE
+        ${gnu-efi_BINARY_DIR}/inc/${TARGET_ARCH})
+    target_include_directories(${_target} PRIVATE
+        ${gnu-efi_BINARY_DIR}/inc/protocol)
 endfunction()

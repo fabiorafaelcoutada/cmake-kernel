@@ -19,6 +19,7 @@ add_executable(${PROJECT_NAME}
         boot.cpp
 )
 
+# 添加编译参数
 target_compile_options(${PROJECT_NAME} PRIVATE
     ${DEFAULT_COMPILE_OPTIONS}
     # 使用的 uefi 版本
@@ -26,6 +27,7 @@ target_compile_options(${PROJECT_NAME} PRIVATE
 #     -DEFI_FUNCTION_WRAPPER -DGNU_EFI_USE_MS_ABI -DHAVE_USE_MS_ABI
 )
 
+# 添加链接参数
 target_link_options(${PROJECT_NAME} PRIVATE
         ${DEFAULT_LINK_OPTIONS}
         # 不链接标准库
@@ -36,20 +38,21 @@ target_link_options(${PROJECT_NAME} PRIVATE
         -Wl,-Bsymbolic
 )
 
-set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${BOOT_ELF_OUTPUT_NAME})
+# 添加头文件
 add_header_boot(${PROJECT_NAME})
 add_header_3rd(${PROJECT_NAME})
 
+# 添加要链接的库
 target_link_libraries(${PROJECT_NAME} PRIVATE
         # 根据 uefi 链接对应的库
         $<$<BOOL:${ENABLE_GNU_EFI}>:
-                # ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/gnu-efi/reloc_${TARGET_ARCH}.o
-                ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/gnu-efi/crt0-efi-${TARGET_ARCH}.o
-                ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/gnu-efi/libgnuefi.a
-                ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/gnu-efi/libefi.a
+                # ${gnu-efi_BINARY_DIR}/gnuefi/reloc_${TARGET_ARCH}.o
+                ${gnu-efi_BINARY_DIR}/gnuefi/crt0-efi-${TARGET_ARCH}.o
+                ${gnu-efi_BINARY_DIR}/gnuefi/libgnuefi.a
+                ${gnu-efi_BINARY_DIR}/lib/libefi.a
         >
         $<$<NOT:$<BOOL:${ENABLE_GNU_EFI}>>:
-                ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/posix-uefi/crt0.o
-                ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/posix-uefi/libuefi.a
+                ${3RD_ARCHIVE_OUTPUT_DIRECTORY}/posix-uefi/crt0.o
+                ${3RD_LIBRARY_OUTPUT_DIRECTORY}/posix-uefi/libuefi.a
         >
 )
