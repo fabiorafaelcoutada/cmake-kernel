@@ -16,7 +16,7 @@
 
 #include "kernel.h"
 
-int32_t main(int32_t _argc, int8_t **_argv) {
+int32_t main(int _argc, char **_argv) {
     (void)_argc;
     (void)_argv;
 
