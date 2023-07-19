@@ -9,7 +9,7 @@ cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 
 # 设置项目名与版本
 project(
-        kernel
+        ${KERNEL_ELF_OUTPUT_NAME}
         VERSION 0.0.1
 )
 

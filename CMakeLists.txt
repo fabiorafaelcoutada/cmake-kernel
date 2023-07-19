@@ -51,14 +51,13 @@ objdump_D(${BOOT_ELF_OUTPUT_NAME})
 # 将引导调整为 efi
 elf2efi(${BOOT_ELF_OUTPUT_NAME} ${BOOT_EFI_OUTPUT_NAME})
 
-add_custom_target(image_uefi DEPENDS ${BOOT_EFI_OUTPUT_NAME} ${KERNEL_ELF_OUTPUT_NAME})
-add_custom_command(TARGET image_uefi
+add_custom_target(image_uefi DEPENDS ${BOOT_EFI_OUTPUT_NAME} ${KERNEL_ELF_OUTPUT_NAME}
         COMMENT "Copying bootloader and kernel"
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/image/efi/boot
-        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/bin/${BOOT_EFI_OUTPUT_NAME} ${CMAKE_BINARY_DIR}/image/efi/boot/
-        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/bin/${KERNEL_ELF_OUTPUT_NAME} ${CMAKE_BINARY_DIR}/image/
-        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/tools/startup.nsh ${CMAKE_BINARY_DIR}/image/startup.nsh
-        )
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BINARY_DIR}/image/efi/boot
+        COMMAND ${CMAKE_COMMAND} -E copy ${${BOOT_ELF_OUTPUT_NAME}_BINARY_DIR}/${BOOT_EFI_OUTPUT_NAME} ${PROJECT_BINARY_DIR}/image/efi/boot/
+        COMMAND ${CMAKE_COMMAND} -E copy ${${KERNEL_ELF_OUTPUT_NAME}_BINARY_DIR}/${KERNEL_ELF_OUTPUT_NAME} ${PROJECT_BINARY_DIR}/image
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/tools/startup.nsh ${PROJECT_BINARY_DIR}/image/startup.nsh
+)
 
 # 固件
 if (TARGET_ARCH STREQUAL "riscv64")
@@ -76,23 +75,9 @@ elseif (TARGET_ARCH STREQUAL "aarch64")
     set(QEMU_FIRMWARE -drive if=pflash,format=raw,file=${CMAKE_BINARY_DIR}/emulation/${FIRMWARE},readonly -drive if=pflash,format=raw,file=$(CMAKE_BINARY_DIR)/emulation/nvram.img)
 endif ()
 
-# 运行 QEMU
-if (TARGET_ARCH STREQUAL "riscv64")
-    add_custom_target(run DEPENDS kernel
-            TARGET run
-            COMMENT "Run SimpleKernel in qemu."
-            COMMAND qemu-system-${TARGET_ARCH} ${QEMU_FLAGS}
-    )
-elseif (TARGET_ARCH STREQUAL "x86_64")
-    add_custom_target(run DEPENDS image_uefi
-            TARGET run
-            COMMENT "Run SimpleKernel in qemu."
-            COMMAND qemu-system-${TARGET_ARCH} ${QEMU_FLAGS}
-    )
-elseif (TARGET_ARCH STREQUAL "aarch64")
-    add_custom_target(run DEPENDS image_uefi
-            TARGET run
-            COMMENT "Run SimpleKernel in qemu."
-            COMMAND qemu-system-${TARGET_ARCH} ${QEMU_FLAGS}
-    )
-endif ()
+# 运行 qemu
+add_custom_target(run DEPENDS image_uefi
+        COMMENT "Run SimpleKernel in qemu."
+        COMMAND ${CMAKE_COMMAND} -E echo ${QEMU_FLAGS}
+        COMMAND qemu-system-${TARGET_ARCH} ${QEMU_FLAGS}
+)
