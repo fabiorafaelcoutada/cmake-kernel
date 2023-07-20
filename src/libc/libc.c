@@ -20,7 +20,7 @@ extern "C" {
 
 #include "libc.h"
 
-int32_t libc(uint32_t _argc, uint8_t **_argv) {
+int32_t libc(uint32_t _argc, uint8_t** _argv) {
     (void)_argc;
     (void)_argv;
 

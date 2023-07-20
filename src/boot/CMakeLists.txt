@@ -15,17 +15,17 @@ project(
 
 enable_language(CXX)
 
-add_executable(${PROJECT_NAME} 
+add_executable(${PROJECT_NAME}
         boot.cpp
-)
+        )
 
 # 添加编译参数
 target_compile_options(${PROJECT_NAME} PRIVATE
-    ${DEFAULT_COMPILE_OPTIONS}
-    # 使用的 uefi 版本
-    -DENABLE_GNU_EFI=$<BOOL:${ENABLE_GNU_EFI}>
-#     -DEFI_FUNCTION_WRAPPER -DGNU_EFI_USE_MS_ABI -DHAVE_USE_MS_ABI
-)
+        ${DEFAULT_COMPILE_OPTIONS}
+        # 使用的 uefi 版本
+        -DENABLE_GNU_EFI=$<BOOL:${ENABLE_GNU_EFI}>
+        #     -DEFI_FUNCTION_WRAPPER -DGNU_EFI_USE_MS_ABI -DHAVE_USE_MS_ABI
+        )
 
 # 添加链接参数
 target_link_options(${PROJECT_NAME} PRIVATE
@@ -36,7 +36,7 @@ target_link_options(${PROJECT_NAME} PRIVATE
         -shared
         # 符号级别绑定
         -Wl,-Bsymbolic
-)
+        )
 
 # 添加头文件
 add_header_boot(${PROJECT_NAME})
@@ -46,13 +46,13 @@ add_header_3rd(${PROJECT_NAME})
 target_link_libraries(${PROJECT_NAME} PRIVATE
         # 根据 uefi 链接对应的库
         $<$<BOOL:${ENABLE_GNU_EFI}>:
-                # ${gnu-efi_BINARY_DIR}/gnuefi/reloc_${TARGET_ARCH}.o
-                ${gnu-efi_BINARY_DIR}/gnuefi/crt0-efi-${TARGET_ARCH}.o
-                ${gnu-efi_BINARY_DIR}/gnuefi/libgnuefi.a
-                ${gnu-efi_BINARY_DIR}/lib/libefi.a
+        # ${gnu-efi_BINARY_DIR}/gnuefi/reloc_${TARGET_ARCH}.o
+        ${gnu-efi_BINARY_DIR}/gnuefi/crt0-efi-${TARGET_ARCH}.o
+        ${gnu-efi_BINARY_DIR}/gnuefi/libgnuefi.a
+        ${gnu-efi_BINARY_DIR}/lib/libefi.a
         >
         $<$<NOT:$<BOOL:${ENABLE_GNU_EFI}>>:
-                ${3RD_ARCHIVE_OUTPUT_DIRECTORY}/posix-uefi/crt0.o
-                ${3RD_LIBRARY_OUTPUT_DIRECTORY}/posix-uefi/libuefi.a
+        ${3RD_ARCHIVE_OUTPUT_DIRECTORY}/posix-uefi/crt0.o
+        ${3RD_LIBRARY_OUTPUT_DIRECTORY}/posix-uefi/libuefi.a
         >
-)
+        )

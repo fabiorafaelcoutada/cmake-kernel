@@ -25,6 +25,6 @@
  * @param  _argv                   参数列表
  * @return int32_t                 正常返回 0
  */
-int32_t main(int32_t _argc, int8_t **_argv);
+int32_t main(int32_t _argc, int8_t** _argv);
 
 #endif /* CMAKE_KERNEL_BOOT_H */

@@ -11,7 +11,7 @@ set(CMAKE_SYSTEM_PROCESSOR x86_64)
 
 # @todo mac 测试
 if (APPLE)
-	message(STATUS "Now is Apple systens.")
+    message(STATUS "Now is Apple systens.")
     # GCC
     find_program(Compiler_gcc x86_64-elf-g++)
     if (NOT Compiler_gcc)
@@ -30,7 +30,7 @@ if (APPLE)
         message(STATUS "Found qemu ${QEMU}")
     endif ()
 elseif (UNIX)
-	message(STATUS "Now is UNIX-like OS's.")
+    message(STATUS "Now is UNIX-like OS's.")
     # GCC
     find_program(Compiler_gcc g++)
     if (NOT Compiler_gcc)

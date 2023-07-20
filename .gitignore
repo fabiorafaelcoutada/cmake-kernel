@@ -10,6 +10,7 @@ build
 build_aarch64
 build_riscv64
 build_x86_64
+cmake-build*
 .gdbinit
 tools/opensbi/build
 .vscode

@@ -16,7 +16,7 @@
 
 #include "libcxx.h"
 
-int32_t libcxx(uint32_t _argc, uint8_t **_argv) {
+int32_t libcxx(uint32_t _argc, uint8_t** _argv) {
     (void)_argc;
     (void)_argv;
 

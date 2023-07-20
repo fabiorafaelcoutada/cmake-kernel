@@ -29,7 +29,7 @@ extern "C" {
  * @param  _argv                   参数列表
  * @return int32_t                 正常返回 0
  */
-int32_t libc(uint32_t _argc, uint8_t **_argv);
+int32_t libc(uint32_t _argc, uint8_t** _argv);
 
 #ifdef __cplusplus
 }

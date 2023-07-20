@@ -58,42 +58,42 @@ add_custom_target(image_uefi DEPENDS ${BOOT_EFI_OUTPUT_NAME} ${KERNEL_ELF_OUTPUT
         COMMAND ${CMAKE_COMMAND} -E copy ${${BOOT_ELF_OUTPUT_NAME}_BINARY_DIR}/${BOOT_EFI_OUTPUT_NAME} ${PROJECT_BINARY_DIR}/image/
         COMMAND ${CMAKE_COMMAND} -E copy ${${KERNEL_ELF_OUTPUT_NAME}_BINARY_DIR}/${KERNEL_ELF_OUTPUT_NAME} ${PROJECT_BINARY_DIR}/image/
         COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/tools/startup.nsh ${PROJECT_BINARY_DIR}/image/
-)
+        )
 
 # qemu 参数设置
 list(APPEND QEMU_FLAGS
-    # 使用标准输出显示
-    -serial stdio 
-    # 启动 telnet 服务，使用 2333 端口，不等待连接
-    -monitor telnet::2333,server,nowait
-)
+        # 使用标准输出显示
+        -serial stdio
+        # 启动 telnet 服务，使用 2333 端口，不等待连接
+        -monitor telnet::2333,server,nowait
+        )
 # 目标平台参数
 if (TARGET_ARCH STREQUAL "x86_64")
     list(APPEND QEMU_FLAGS
-        -m 128M
-        -net none
-        -bios ${ovmf_BINARY_DIR}/OVMF_${TARGET_ARCH}.fd
-        -hda fat:rw:${CMAKE_BINARY_DIR}/image/
-    )
+            -m 128M
+            -net none
+            -bios ${ovmf_BINARY_DIR}/OVMF_${TARGET_ARCH}.fd
+            -hda fat:rw:${CMAKE_BINARY_DIR}/image/
+            )
 elseif (TARGET_ARCH STREQUAL "riscv64")
     list(APPEND QEMU_FLAGS
-        -machine virt
-        -nographic
-        -bios ${opensbi_BINARY_DIR}/platform/generic/firmware/fw_jump.elf
-        -kernel ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${KERNEL_ELF_OUTPUT_NAME}
-    )
+            -machine virt
+            -nographic
+            -bios ${opensbi_BINARY_DIR}/platform/generic/firmware/fw_jump.elf
+            -kernel ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${KERNEL_ELF_OUTPUT_NAME}
+            )
 elseif (TARGET_ARCH STREQUAL "aarch64")
     # @todo
 endif ()
 
 # 如果 ENABLE_GDB 为 ON
 if (ENABLE_GDB)
-list(APPEND QEMU_FLAGS 
-    # 等待 gdb 连接
-    -S
-    # 使用 1234 端口
-    -gdb tcp::1234
-)
+    list(APPEND QEMU_FLAGS
+            # 等待 gdb 连接
+            -S
+            # 使用 1234 端口
+            -gdb tcp::1234
+            )
 endif ()
 
 # 运行 qemu
@@ -101,4 +101,4 @@ add_custom_target(run DEPENDS image_uefi
         COMMENT "Run SimpleKernel in qemu."
         COMMAND ${CMAKE_COMMAND} -E echo ${QEMU_FLAGS}
         COMMAND qemu-system-${TARGET_ARCH} ${QEMU_FLAGS}
-)
+        )

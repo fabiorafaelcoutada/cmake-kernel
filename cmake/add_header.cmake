@@ -7,41 +7,41 @@
 
 function(add_header_libc _target)
     target_include_directories(${_target} PRIVATE
-        ${CMAKE_SOURCE_DIR}/src/libc/include)
+            ${CMAKE_SOURCE_DIR}/src/libc/include)
 endfunction()
 
 function(add_header_libcxx _target)
     target_include_directories(${_target} PRIVATE
-        ${CMAKE_SOURCE_DIR}/src/libcxx/include)
+            ${CMAKE_SOURCE_DIR}/src/libcxx/include)
 endfunction()
 
 function(add_header_arch _target)
     target_include_directories(${_target} PRIVATE
-        ${CMAKE_SOURCE_DIR}/src/arch/include)
+            ${CMAKE_SOURCE_DIR}/src/arch/include)
     target_include_directories(${_target} PRIVATE
-        ${CMAKE_SOURCE_DIR}/src/arch/${TARGET_ARCH}/include)
+            ${CMAKE_SOURCE_DIR}/src/arch/${TARGET_ARCH}/include)
 endfunction()
 
 function(add_header_boot _target)
     target_include_directories(${_target} PRIVATE
-        ${CMAKE_SOURCE_DIR}/src/boot/include)
+            ${CMAKE_SOURCE_DIR}/src/boot/include)
 endfunction()
 
 function(add_header_kernel _target)
     target_include_directories(${_target} PRIVATE
-        ${CMAKE_SOURCE_DIR}/src/kernel/include)
+            ${CMAKE_SOURCE_DIR}/src/kernel/include)
 endfunction()
 
 function(add_header_driver _target)
     target_include_directories(${_target} PRIVATE
-        ${CMAKE_SOURCE_DIR}/src/driver/include)
+            ${CMAKE_SOURCE_DIR}/src/driver/include)
 endfunction()
 
 function(add_header_3rd _target)
     target_include_directories(${_target} PRIVATE
-        ${gnu-efi_BINARY_DIR}/inc)
+            ${gnu-efi_BINARY_DIR}/inc)
     target_include_directories(${_target} PRIVATE
-        ${gnu-efi_BINARY_DIR}/inc/${TARGET_ARCH})
+            ${gnu-efi_BINARY_DIR}/inc/${TARGET_ARCH})
     target_include_directories(${_target} PRIVATE
-        ${gnu-efi_BINARY_DIR}/inc/protocol)
+            ${gnu-efi_BINARY_DIR}/inc/protocol)
 endfunction()

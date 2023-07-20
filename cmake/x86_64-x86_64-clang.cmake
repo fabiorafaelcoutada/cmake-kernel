@@ -11,10 +11,10 @@ set(CMAKE_SYSTEM_PROCESSOR x86_64)
 
 # @todo mac 测试
 if (APPLE)
-	message(STATUS "Now is Apple systens.")
+    message(STATUS "Now is Apple systens.")
     # @todo
 elseif (UNIX)
-	message(STATUS "Now is UNIX-like OS's.")
+    message(STATUS "Now is UNIX-like OS's.")
     # clang
     find_program(Compiler_clang++ clang++)
     if (NOT Compiler_clang)
@@ -24,14 +24,14 @@ elseif (UNIX)
         message(STATUS "Found clang++ ${Compiler_clang}")
     endif ()
 
-    set(CMAKE_C_COMPILER   clang)
+    set(CMAKE_C_COMPILER clang)
     set(CMAKE_CXX_COMPILER clang++)
-    set(CMAKE_READELF      readelf)
-    set(CMAKE_AR           ar)
-    set(CMAKE_LINKER       ld)
-    set(CMAKE_NM           nm)
-    set(CMAKE_OBJDUMP      objdump)
-    set(CMAKE_RANLIB       ranlib)
+    set(CMAKE_READELF readelf)
+    set(CMAKE_AR ar)
+    set(CMAKE_LINKER ld)
+    set(CMAKE_NM nm)
+    set(CMAKE_OBJDUMP objdump)
+    set(CMAKE_RANLIB ranlib)
 
     # qemu
     find_program(QEMU qemu-system-x86_64)

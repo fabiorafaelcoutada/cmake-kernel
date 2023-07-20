@@ -13,35 +13,35 @@ set(CPM_USE_LOCAL_PACKAGES True)
 # -------- get_cpm.cmake --------
 set(CPM_DOWNLOAD_VERSION 0.38.2)
 
-if(CPM_SOURCE_CACHE)
-  set(CPM_DOWNLOAD_LOCATION "${CPM_SOURCE_CACHE}/cpm/CPM_${CPM_DOWNLOAD_VERSION}.cmake")
-elseif(DEFINED ENV{CPM_SOURCE_CACHE})
-  set(CPM_DOWNLOAD_LOCATION "$ENV{CPM_SOURCE_CACHE}/cpm/CPM_${CPM_DOWNLOAD_VERSION}.cmake")
-else()
-  set(CPM_DOWNLOAD_LOCATION "${CMAKE_BINARY_DIR}/cmake/CPM_${CPM_DOWNLOAD_VERSION}.cmake")
-endif()
+if (CPM_SOURCE_CACHE)
+    set(CPM_DOWNLOAD_LOCATION "${CPM_SOURCE_CACHE}/cpm/CPM_${CPM_DOWNLOAD_VERSION}.cmake")
+elseif (DEFINED ENV{CPM_SOURCE_CACHE})
+    set(CPM_DOWNLOAD_LOCATION "$ENV{CPM_SOURCE_CACHE}/cpm/CPM_${CPM_DOWNLOAD_VERSION}.cmake")
+else ()
+    set(CPM_DOWNLOAD_LOCATION "${CMAKE_BINARY_DIR}/cmake/CPM_${CPM_DOWNLOAD_VERSION}.cmake")
+endif ()
 
 # Expand relative path. This is important if the provided path contains a tilde (~)
 get_filename_component(CPM_DOWNLOAD_LOCATION ${CPM_DOWNLOAD_LOCATION} ABSOLUTE)
 
 function(download_cpm)
-  message(STATUS "Downloading CPM.cmake to ${CPM_DOWNLOAD_LOCATION}")
-  file(DOWNLOAD
-       https://github.com/cpm-cmake/CPM.cmake/releases/download/v${CPM_DOWNLOAD_VERSION}/CPM.cmake
-       ${CPM_DOWNLOAD_LOCATION}
-  )
+    message(STATUS "Downloading CPM.cmake to ${CPM_DOWNLOAD_LOCATION}")
+    file(DOWNLOAD
+            https://github.com/cpm-cmake/CPM.cmake/releases/download/v${CPM_DOWNLOAD_VERSION}/CPM.cmake
+            ${CPM_DOWNLOAD_LOCATION}
+            )
 endfunction()
 
-if(NOT (EXISTS ${CPM_DOWNLOAD_LOCATION}))
-  download_cpm()
-else()
-  # resume download if it previously failed
-  file(READ ${CPM_DOWNLOAD_LOCATION} check)
-  if("${check}" STREQUAL "")
+if (NOT (EXISTS ${CPM_DOWNLOAD_LOCATION}))
     download_cpm()
-  endif()
-  unset(check)
-endif()
+else ()
+    # resume download if it previously failed
+    file(READ ${CPM_DOWNLOAD_LOCATION} check)
+    if ("${check}" STREQUAL "")
+        download_cpm()
+    endif ()
+    unset(check)
+endif ()
 
 include(${CPM_DOWNLOAD_LOCATION})
 # -------- get_cpm.cmake --------
@@ -175,82 +175,82 @@ include(${CPM_DOWNLOAD_LOCATION})
 
 # https://sourceforge.net/projects/gnu-efi/
 CPMAddPackage(
-  NAME gnu-efi
-  URL "https://sourceforge.net/projects/gnu-efi/files/gnu-efi-3.0.17.tar.bz2"
-  VERSION 3.0.17
-  DOWNLOAD_ONLY True
+        NAME gnu-efi
+        URL "https://sourceforge.net/projects/gnu-efi/files/gnu-efi-3.0.17.tar.bz2"
+        VERSION 3.0.17
+        DOWNLOAD_ONLY True
 )
 if (gnu-efi_ADDED)
-  # 编译 gnu-efi
-  add_custom_target(gnu-efi
-    COMMENT "build gnu-efi..."
-    # make 时编译
-    ALL
-    WORKING_DIRECTORY ${gnu-efi_SOURCE_DIR}
-    COMMAND 
-      ${CMAKE_COMMAND} 
-      -E 
-      make_directory 
-    ${gnu-efi_BINARY_DIR}
-    COMMAND
-      make
-      ARCH=${TARGET_ARCH}
-      OBJDIR=${gnu-efi_BINARY_DIR}
-    COMMAND 
-      ${CMAKE_COMMAND} 
-      -E 
-      copy_directory 
-      ${gnu-efi_SOURCE_DIR}/inc
-      ${gnu-efi_BINARY_DIR}/inc
-  )
+    # 编译 gnu-efi
+    add_custom_target(gnu-efi
+            COMMENT "build gnu-efi..."
+            # make 时编译
+            ALL
+            WORKING_DIRECTORY ${gnu-efi_SOURCE_DIR}
+            COMMAND
+            ${CMAKE_COMMAND}
+            -E
+            make_directory
+            ${gnu-efi_BINARY_DIR}
+            COMMAND
+            make
+            ARCH=${TARGET_ARCH}
+            OBJDIR=${gnu-efi_BINARY_DIR}
+            COMMAND
+            ${CMAKE_COMMAND}
+            -E
+            copy_directory
+            ${gnu-efi_SOURCE_DIR}/inc
+            ${gnu-efi_BINARY_DIR}/inc
+            )
 endif ()
 
 # ovmf
 # @todo 使用互联网连接或从 edk2 编译
 CPMAddPackage(
-  NAME ovmf
-  SOURCE_DIR ${PROJECT_SOURCE_DIR}/tools/ovmf
+        NAME ovmf
+        SOURCE_DIR ${PROJECT_SOURCE_DIR}/tools/ovmf
 )
 if (ovmf_ADDED)
-  add_custom_target(ovmf
-    COMMENT "build ovmf ..."
-    # make 时编译
-    ALL
-    WORKING_DIRECTORY ${ovmf_SOURCE_DIR}
-    COMMAND 
-      ${CMAKE_COMMAND} 
-      -E
-      copy
-      ${ovmf_SOURCE_DIR}/*
-      ${ovmf_BINARY_DIR}
-  )
-endif()
+    add_custom_target(ovmf
+            COMMENT "build ovmf ..."
+            # make 时编译
+            ALL
+            WORKING_DIRECTORY ${ovmf_SOURCE_DIR}
+            COMMAND
+            ${CMAKE_COMMAND}
+            -E
+            copy
+            ${ovmf_SOURCE_DIR}/*
+            ${ovmf_BINARY_DIR}
+            )
+endif ()
 
 # https://github.com/gdbinit/Gdbinit
 # @todo 下载下来的文件为 makefile 形式，需要自己编译
 CPMAddPackage(
-  NAME gdbinit
-  GIT_REPOSITORY https://github.com/gdbinit/Gdbinit.git
-  GIT_TAG e5138c24226bdd05360ca41743d8315a9e366c40
-  DOWNLOAD_ONLY True
+        NAME gdbinit
+        GIT_REPOSITORY https://github.com/gdbinit/Gdbinit.git
+        GIT_TAG e5138c24226bdd05360ca41743d8315a9e366c40
+        DOWNLOAD_ONLY True
 )
 if (gdbinit_ADDED)
-  if (ENABLE_GDB)
-    add_custom_target(gdbinit
-      COMMENT "build gnu-efi ..."
-      # make 时编译
-      ALL
-      WORKING_DIRECTORY ${gdbinit_SOURCE_DIR}
-      # 复制到根目录下并重命名
-      COMMAND 
-        ${CMAKE_COMMAND} 
-        -E
-        copy 
-        ${gdbinit_SOURCE_DIR}/gdbinit
-        ${CMAKE_SOURCE_DIR}/.gdbinit
-    )
-  endif()
-endif()
+    if (ENABLE_GDB)
+        add_custom_target(gdbinit
+                COMMENT "build gnu-efi ..."
+                # make 时编译
+                ALL
+                WORKING_DIRECTORY ${gdbinit_SOURCE_DIR}
+                # 复制到根目录下并重命名
+                COMMAND
+                ${CMAKE_COMMAND}
+                -E
+                copy
+                ${gdbinit_SOURCE_DIR}/gdbinit
+                ${CMAKE_SOURCE_DIR}/.gdbinit
+                )
+    endif ()
+endif ()
 
 # # https://github.com/tianocore/edk2
 # # @todo 下载下来的文件为 makefile 形式，需要自己编译
@@ -264,19 +264,19 @@ endif()
 # https://github.com/cpm-cmake/CPMLicenses.cmake
 # 保持在文件最后
 CPMAddPackage(
-  NAME CPMLicenses.cmake 
-  GITHUB_REPOSITORY cpm-cmake/CPMLicenses.cmake
-  VERSION 0.0.7
+        NAME CPMLicenses.cmake
+        GITHUB_REPOSITORY cpm-cmake/CPMLicenses.cmake
+        VERSION 0.0.7
 )
 if (gnu-efi_ADDED)
-  cpm_licenses_create_disclaimer_target(
-    write-licenses "${CMAKE_CURRENT_SOURCE_DIR}/3rd/LICENSE" "${CPM_PACKAGES}"
-  )
+    cpm_licenses_create_disclaimer_target(
+            write-licenses "${CMAKE_CURRENT_SOURCE_DIR}/3rd/LICENSE" "${CPM_PACKAGES}"
+    )
 endif ()
 # make 时自动在 3rd 文件夹下生成 LICENSE 文件
 add_custom_target(3rd_licenses
-  ALL
-  COMMAND
-  make
-  write-licenses
-)
+        ALL
+        COMMAND
+        make
+        write-licenses
+        )
