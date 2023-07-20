@@ -1,5 +1,11 @@
 # cmake-kernel
 
+关键词：cmake kernel cross-compile cmake-templete
+
+用于构建内核的构建系统。
+
+
+
 ## 设计
 
 用于构建内核的构建系统
@@ -72,11 +78,11 @@
     1. 使用 doxygen 从注释生成文档
     2. doxygen 配置文件
 
-- [ ] 构建内核
+- [x] 构建内核
 
     生成内核 elf 文件
 
-- [ ] 运行内核
+- [x] 运行内核
 
     在 qemu 上运行内核
 
@@ -96,11 +102,11 @@
 
     版本号、自动生成头文件
 
-- [ ] 指定输出目录
+- [x] 指定输出目录
 
     将第三方依赖、内核等编译生成的文件放到指定位置
 
-- [ ] 调试
+- [x] 调试
 
     使用 make debug 等进入调试模式
 
@@ -122,23 +128,23 @@
 
 根目录 CMakeList.txt 可用参数如下
 
-|          参数          |         合法值（默认值）         | 类型 |                  说明                   |      |
-| :--------------------: | :------------------------------: | :--: | :-------------------------------------: | :--: |
-|  ENABLE_BUILD_RELEASE  |           ON/OFF(OFF)            | BOOL |              是否为发布版               |      |
-| ENABLE_GENERATOR_MAKE  |            ON/OFF(ON)            | BOOL |  是否使用 make 构建，OFF 则使用 ninja   |      |
-|  ENABLE_COMPILER_GNU   |            ON/OFF(ON)            | BOOL |     是否使用 gcc，OFF 则使用 clang      |      |
-|     ENABLE_GNU_EFI     |            ON/OFF(ON)            | BOOL | 是否使用 gnu-efi，OFF 则使用 posix-uefi |      |
-|  ENABLE_TEST_COVERAGE  |            ON/OFF(ON)            | BOOL |           是否开启测试覆盖率            |      |
-|        PLATFORM        |               qemu               | STR  |               运行的平台                |      |
-|      TARGET_ARCH       | x86_64, riscv64, aarch64(x86_64) | STR  |                目标架构                 |      |
-|  BOOT_ELF_OUTPUT_NAME  |            (boot.elf)            | STR  |             引导 elf 文件名             |      |
-|  BOOT_EFI_OUTPUT_NAME  |            (boot.efi)            | STR  |             引导 efi 文件名             |      |
-| KERNEL_ELF_OUTPUT_NAME |           (kernel.elf)           | STR  |             内核 elf 文件名             |      |
-| KERNEL_EFI_OUTPUT_NAME |           (kernel.efi)           | STR  |             内核 efi 文件名             |      |
-|      ENABLE_DEBUG      |           ON/OFF(OFF)            | BOOL |           是否启用调试，为 ON           |      |
-|                        |                                  |      |                                         |      |
-|                        |                                  |      |                                         |      |
-|                        |                                  |      |                                         |      |
+|          参数          |         合法值（默认值）         | 类型 |                  说明                   |
+| :--------------------: | :------------------------------: | :--: | :-------------------------------------: |
+|  ENABLE_BUILD_RELEASE  |           ON/OFF(OFF)            | BOOL |              是否为发布版               |
+| ENABLE_GENERATOR_MAKE  |            ON/OFF(ON)            | BOOL |  是否使用 make 构建，OFF 则使用 ninja   |
+|  ENABLE_COMPILER_GNU   |            ON/OFF(ON)            | BOOL |     是否使用 gcc，OFF 则使用 clang      |
+|     ENABLE_GNU_EFI     |            ON/OFF(ON)            | BOOL | 是否使用 gnu-efi，OFF 则使用 posix-uefi |
+|  ENABLE_TEST_COVERAGE  |            ON/OFF(ON)            | BOOL |           是否开启测试覆盖率            |
+|      ENABLE_GDB      |           ON/OFF(OFF)            | BOOL |           是否启用 gdb 调试，为 ON           |
+|        PLATFORM        |               qemu               | STR  |               运行的平台                |
+|      TARGET_ARCH       | x86_64, riscv64, aarch64(x86_64) | STR  |                目标架构                 |
+|  BOOT_ELF_OUTPUT_NAME  |            (boot.elf)            | STR  |             引导 elf 文件名             |
+|  BOOT_EFI_OUTPUT_NAME  |            (boot.efi)            | STR  |             引导 efi 文件名             |
+| KERNEL_ELF_OUTPUT_NAME |           (kernel.elf)           | STR  |             内核 elf 文件名             |
+| KERNEL_EFI_OUTPUT_NAME |           (kernel.efi)           | STR  |             内核 efi 文件名             |
+|                        |                                  |      |                                         |
+|                        |                                  |      |                                         |
+|                        |                                  |      |                                         |
 
 
 
@@ -150,4 +156,73 @@ cmake \
   -DKERNEL_ELF_OUTPUT_NAME="mykernel.elf" \
   ..
 ```
+
+### 调试
+
+```shell
+cmake \
+  -DTARGET_ARCH=x86_64 \
+  -DBOOT_ELF_OUTPUT_NAME="myboot.elf" \
+  -DKERNEL_ELF_OUTPUT_NAME="mykernel.elf" \
+  -DENABLE_GDB=ON \
+  ..
+```
+
+构建系统行为
+
+1. 编译出带 -g -ggdb 参数的内核
+2. 将 gdbinit 复制到根目录 .gdbinit
+3. 启动 qemu，在 2333 端口开放 telnet，在 1234 端口开放 gdb、
+4. 等待 gdb 连接
+
+qemu 进入等待状态后，就可以通过 gdb 连接进行调试了
+
+```shell
+# 进入 gdb
+gdb-multiarch
+# 连接到 qemu
+> target remote :1234
+# 加载调试符号
+> file ./build_x86_64/bin/boot.elf
+# 运行
+> c
+```
+
+更多调试命令请参考 [gdb 手册 ](https://ftp.gnu.org/old-gnu/Manuals/gdb/html_chapter/gdb_toc.html)
+
+### 文档生成
+
+### 测试覆盖率
+
+
+
+## 错误处理
+
+- gdbinit
+
+    ```shell
+    To enable execution of this file add
+            add-auto-load-safe-path /home/nzh_ubuntu/GitHub/cmake-kernel/.gdbinit
+    line to your configuration file "/home/yourusername/.config/gdb/gdbinit".
+    To completely disable this security protection add
+            set auto-load safe-path /
+    line to your configuration file "/home/yourusername/.config/gdb/gdbinit".
+    For more information about this security protection see the
+    "Auto-loading safe path" section in the GDB manual.  E.g., run from the shell:
+            info "(gdb)Auto-loading safe path"
+    ```
+
+    在你的用户目录下找到 `/home/nzh_ubuntu/.config/gdb/gdbinit`(没有则新建)，将这一句加进去
+
+    ```shell
+    add-auto-load-safe-path /home/yourusername/pathtocmakekernel/cmake-kernel/.gdbinit
+    ```
+
+- ss
+
+- 124
+
+- 5435
+
+- sfsf
 

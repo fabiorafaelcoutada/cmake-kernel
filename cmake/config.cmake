@@ -7,7 +7,7 @@
 
 # 设置 cmake 目标环境根目录
 # @todo 设置目录
-set(CMAKE_FIND_ROOT_PATH 
+list(APPEND CMAKE_FIND_ROOT_PATH 
     /usr/x86_64-linux-gnu
     /usr/riscv64-linux-gnu
     /usr/aarch64-linux-gnu
@@ -18,6 +18,10 @@ set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 # 在目标环境搜索头文件
 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+
+# 设置使用的 C/C++ 版本
+set(CMAKE_C_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 # 设置清理目标 在 make clean 时删除文件夹
 set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES 
@@ -35,45 +39,10 @@ option(ENABLE_GENERATOR_MAKE "Use make or ninja" ON)
 option(ENABLE_COMPILER_GNU "Use gcc or clang" ON)
 # 是否使用 gnu-efi，默认为 ON，仅在 x86_64 平台有效
 option(ENABLE_GNU_EFI "Use gnu efi" ON)
-# 是否开启调试，默认为 OFF
-option(ENABLE_DEBUG "Enable debug" OFF)
 # 是否开启测试覆盖率，默认为 ON
 option(ENABLE_TEST_COVERAGE "Enable test coverage" ON)
-
-# 设置构建使用的工具，默认为 make
-if (ENABLE_GENERATOR_MAKE)
-    set(GENERATOR_COMMAND make)
-else ()
-    set(GENERATOR_COMMAND ninja)
-endif ()
-message("GENERATOR_COMMAND is: ${GENERATOR_COMMAND}")
-
-# 设置使用的 C/C++ 版本
-set(CMAKE_C_STANDARD 17)
-set(CMAKE_CXX_STANDARD 20)
-
-# 要运行的平台
-set(VALID_PLATFORM qemu)
-if (NOT DEFINED PLATFORM)
-    set(PLATFORM qemu)
-endif ()
-message("PLATFORM is: ${PLATFORM}")
-# 如果不合法则报错
-if (NOT PLATFORM IN_LIST VALID_PLATFORM)
-    message(FATAL_ERROR "PLATFORM must be one of ${VALID_PLATFORM}")
-endif ()
-
-# 目标架构
-set(VALID_TARGET_ARCH x86_64 riscv64 aarch64)
-# 默认构建 x86_64
-if (NOT DEFINED TARGET_ARCH)
-    set(TARGET_ARCH x86_64)
-endif ()
-message("TARGET_ARCH is: ${TARGET_ARCH}")
-# 如果不合法则报错
-if (NOT TARGET_ARCH IN_LIST VALID_TARGET_ARCH)
-    message(FATAL_ERROR "TARGET_ARCH must be one of ${VALID_TARGET_ARCH}")
-endif ()
+# 是否开启 gdb 调试，默认为 OFF
+option(ENABLE_GDB "Enable debug" OFF)
 
 # 是否为 Debug 版本，默认为 Debug
 if (ENABLE_BUILD_RELEASE)
@@ -84,6 +53,37 @@ else ()
     set(CMAKE_VERBOSE_MAKEFILE ON)
 endif ()
 message("ENABLE_BUILD_RELEASE is: ${ENABLE_BUILD_RELEASE}")
+
+# 设置构建使用的工具，默认为 make
+if (ENABLE_GENERATOR_MAKE)
+    set(GENERATOR_COMMAND make)
+else ()
+    set(GENERATOR_COMMAND ninja)
+endif ()
+message("GENERATOR_COMMAND is: ${GENERATOR_COMMAND}")
+
+# 要运行的平台
+list(APPEND VALID_PLATFORM qemu)
+if (NOT DEFINED PLATFORM)
+    set(PLATFORM qemu)
+endif ()
+message("PLATFORM is: ${PLATFORM}")
+# 如果不合法则报错
+if (NOT PLATFORM IN_LIST VALID_PLATFORM)
+    message(FATAL_ERROR "PLATFORM must be one of ${VALID_PLATFORM}")
+endif ()
+
+# 目标架构
+list(APPEND VALID_TARGET_ARCH x86_64 riscv64 aarch64)
+# 默认构建 x86_64
+if (NOT DEFINED TARGET_ARCH)
+    set(TARGET_ARCH x86_64)
+endif ()
+message("TARGET_ARCH is: ${TARGET_ARCH}")
+# 如果不合法则报错
+if (NOT TARGET_ARCH IN_LIST VALID_TARGET_ARCH)
+    message(FATAL_ERROR "TARGET_ARCH must be one of ${VALID_TARGET_ARCH}")
+endif ()
 
 # 设置编译器
 if (ENABLE_COMPILER_GNU)
@@ -100,129 +100,74 @@ if (NOT ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" OR "${CMAKE_CXX_COMPILER_ID}" 
 endif()
 
 # 编译选项
-set(DEFAULT_COMPILE_OPTIONS)
-set(DEFAULT_COMPILE_OPTIONS
-    PRIVATE
-        # 发布模式
-        $<$<BOOL:${ENABLE_BUILD_RELEASE}>:
-            # 代码优化级别
-            -O3
-            # 警告作为错误处理
-            -Werror
-        >
-        # 调试模式
-        $<$<NOT:$<BOOL:${ENABLE_BUILD_RELEASE}>>:
-            # 代码优化级别
-            -O0
-            # 生成调试信息
-            -g
-            # 生成 gdb 调试信息
-            -ggdb
-        >
-        # 打开全部警告
-        -Wall 
-        # 打开额外警告
-        -Wextra
-        # 将代码编译为无操作系统支持的独立程序
-        -ffreestanding
-        # 启用异常处理机制
-        -fexceptions 
-        # 使用 2 字节 wchar_t
-        -fshort-wchar
-        # 允许 wchar_t
-        -fpermissive
-        
-        # 目标平台编译选项
-        # @todo clang 交叉编译参数
-        $<$<STREQUAL:${TARGET_ARCH},x86_64>:
-            # 
-            -mno-red-zone
-        >
-        $<$<STREQUAL:${TARGET_ARCH},riscv64>:
-            # 生成 rv64imafdc 代码
-            -march=rv64imafdc
-        >
-        $<$<STREQUAL:${TARGET_ARCH},aarch64>:
-            # 生成 armv8-a 代码
-            -march=armv8-a
-            # 针对 cortex-a72 优化代码
-            -mtune=cortex-a72
-        >
+list(APPEND DEFAULT_COMPILE_OPTIONS
+    # 如果 ENABLE_BUILD_RELEASE 为 ON 则使用 -O3 -Werror，否则使用 -O0 -g -ggdb
+    $<IF:$<BOOL:${ENABLE_BUILD_RELEASE}>,-O3;-Werror,-O0;-g;-ggdb>
+    # 打开全部警告
+    -Wall 
+    # 打开额外警告
+    -Wextra
+    # 将代码编译为无操作系统支持的独立程序
+    -ffreestanding
+    # 启用异常处理机制
+    -fexceptions 
+    # 使用 2 字节 wchar_t
+    -fshort-wchar
+    # 允许 wchar_t
+    -fpermissive
+    
+    # 目标平台编译选项
+    # @todo clang 交叉编译参数
+    $<$<STREQUAL:${TARGET_ARCH},x86_64>:
+        # 
+        -mno-red-zone
+    >
+    $<$<STREQUAL:${TARGET_ARCH},riscv64>:
+        # 生成 rv64imafdc 代码
+        -march=rv64imafdc
+    >
+    $<$<STREQUAL:${TARGET_ARCH},aarch64>:
+        # 生成 armv8-a 代码
+        -march=armv8-a
+        # 针对 cortex-a72 优化代码
+        -mtune=cortex-a72
+    >
 
-        # 测试覆盖率选项
-        $<$<BOOL:${ENABLE_TEST_COVERAGE}>:
-            # 启用代码覆盖率
-            -fprofile-arcs
-            # 生成代码覆盖率报告
-            -ftest-coverage
-        >
+    # 如果 ENABLE_TEST_COVERAGE 为 ON 则使用 -fprofile-arcs -ftest-coverage，否则为空
+    # $<BOOL:${ENABLE_TEST_COVERAGE}:-fprofile-arcs;-ftest-coverage>
 
-        # gcc 特定选项
-        $<$<CXX_COMPILER_ID:GNU>:
-        >
-        
-        # clang 特定选项
-        $<$<CXX_COMPILER_ID:Clang>:
-        >
+    # gcc 特定选项
+    $<$<CXX_COMPILER_ID:GNU>:
+    >
+    
+    # clang 特定选项
+    $<$<CXX_COMPILER_ID:Clang>:
+    >
 
-        # 定义 gnuefi 宏
-        -DGNU_EFI_USE_MS_ABI
-        
-        # 平台相关
-        $<$<PLATFORM_ID:Darwin>:
-        >
+    # 定义 gnuefi 宏
+    -DGNU_EFI_USE_MS_ABI
+    
+    # 平台相关
+    $<$<PLATFORM_ID:Darwin>:
+    >
 )
 
 # 链接选项
-set(DEFAULT_LINK_OPTIONS)
-set(DEFAULT_LINK_OPTIONS
-    PRIVATE
-        # 生成位置无关代码 Position-Independent Code
-        # -fPIC
-        # 链接脚本
-        -T ${CMAKE_SOURCE_DIR}/src/arch/${TARGET_ARCH}/link.ld
-        # 目标平台编译选项
-        # @todo clang 交叉编译参数
-        $<$<STREQUAL:${TARGET_ARCH},x86_64>:
-            # 设置最大页大小为 0x1000(4096) 字节
-            -z max-page-size=0x1000
-        >
-        $<$<STREQUAL:${TARGET_ARCH},riscv64>:
-        >
-        $<$<STREQUAL:${TARGET_ARCH},aarch64>:
-        >
-)
-
-# qemu 参数设置
-set(QEMU_FLAGS 
-        # 使用标准输出显示
-        -serial stdio 
-        # 启动 telnet 服务，使用 2333 端口，不等待连接
-        -monitor telnet::2333,server,nowait
-        # 启用调试
-        $<$<BOOL:${ENABLE_DEBUG}>:
-            # 等待 gdb 连接
-            -S
-            # 使用 1234 端口
-            -gdb tcp::1234
-        >
-        # 目标平台参数
-        $<$<STREQUAL:${TARGET_ARCH},x86_64>:
-            -m 128M
-            -net none
-            -hda fat:rw:${CMAKE_BINARY_DIR}/image/
-        >
-        $<$<STREQUAL:${TARGET_ARCH},riscv64>:
-            -machine virt
-            -nographic
-            -kernel ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${KERNEL_ELF_OUTPUT_NAME}
-        >
-        $<$<STREQUAL:${TARGET_ARCH},aarch64>:
-            -machine virt 
-            -cpu cortex-a72
-            -net none
-            -drive format=raw,file=${CMAKE_BINARY_DIR}/kernel.img
-        >
+list(APPEND DEFAULT_LINK_OPTIONS
+    # 生成位置无关代码 Position-Independent Code
+    # -fPIC
+    # 链接脚本
+    -T ${CMAKE_SOURCE_DIR}/src/arch/${TARGET_ARCH}/link.ld
+    # 目标平台编译选项
+    # @todo clang 交叉编译参数
+    $<$<STREQUAL:${TARGET_ARCH},x86_64>:
+        # 设置最大页大小为 0x1000(4096) 字节
+        -z max-page-size=0x1000
+    >
+    $<$<STREQUAL:${TARGET_ARCH},riscv64>:
+    >
+    $<$<STREQUAL:${TARGET_ARCH},aarch64>:
+    >
 )
 
 # 设置二进制文件名称

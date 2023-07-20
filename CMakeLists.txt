@@ -51,28 +51,49 @@ objdump_D(${BOOT_ELF_OUTPUT_NAME})
 # 将引导调整为 efi
 elf2efi(${BOOT_ELF_OUTPUT_NAME} ${BOOT_EFI_OUTPUT_NAME})
 
+# 创建 image 目录并将文件复制
 add_custom_target(image_uefi DEPENDS ${BOOT_EFI_OUTPUT_NAME} ${KERNEL_ELF_OUTPUT_NAME}
         COMMENT "Copying bootloader and kernel"
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BINARY_DIR}/image/efi/boot
-        COMMAND ${CMAKE_COMMAND} -E copy ${${BOOT_ELF_OUTPUT_NAME}_BINARY_DIR}/${BOOT_EFI_OUTPUT_NAME} ${PROJECT_BINARY_DIR}/image/efi/boot/
-        COMMAND ${CMAKE_COMMAND} -E copy ${${KERNEL_ELF_OUTPUT_NAME}_BINARY_DIR}/${KERNEL_ELF_OUTPUT_NAME} ${PROJECT_BINARY_DIR}/image
-        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/tools/startup.nsh ${PROJECT_BINARY_DIR}/image/startup.nsh
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BINARY_DIR}/image/
+        COMMAND ${CMAKE_COMMAND} -E copy ${${BOOT_ELF_OUTPUT_NAME}_BINARY_DIR}/${BOOT_EFI_OUTPUT_NAME} ${PROJECT_BINARY_DIR}/image/
+        COMMAND ${CMAKE_COMMAND} -E copy ${${KERNEL_ELF_OUTPUT_NAME}_BINARY_DIR}/${KERNEL_ELF_OUTPUT_NAME} ${PROJECT_BINARY_DIR}/image/
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/tools/startup.nsh ${PROJECT_BINARY_DIR}/image/
 )
 
-# 固件
-if (TARGET_ARCH STREQUAL "riscv64")
-    set(FIRMWARE fw_jump.elf)
-    set(QEMU_FIRMWARE -bios ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${FIRMWARE})
-elseif (TARGET_ARCH STREQUAL "x86_64")
-    set(FIRMWARE OVMF_${TARGET_ARCH}.fd)
-    set(QEMU_FIRMWARE -bios ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${FIRMWARE})
+# qemu 参数设置
+list(APPEND QEMU_FLAGS
+    # 使用标准输出显示
+    -serial stdio 
+    # 启动 telnet 服务，使用 2333 端口，不等待连接
+    -monitor telnet::2333,server,nowait
+)
+# 目标平台参数
+if (TARGET_ARCH STREQUAL "x86_64")
+    list(APPEND QEMU_FLAGS
+        -m 128M
+        -net none
+        -bios ${ovmf_BINARY_DIR}/OVMF_${TARGET_ARCH}.fd
+        -hda fat:rw:${CMAKE_BINARY_DIR}/image/
+    )
+elseif (TARGET_ARCH STREQUAL "riscv64")
+    list(APPEND QEMU_FLAGS
+        -machine virt
+        -nographic
+        -bios ${opensbi_BINARY_DIR}/platform/generic/firmware/fw_jump.elf
+        -kernel ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${KERNEL_ELF_OUTPUT_NAME}
+    )
 elseif (TARGET_ARCH STREQUAL "aarch64")
-    set(FIRMWARE ovmf-aarch64.fd)
-    execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/emulation/)
-    execute_process(COMMAND truncate -s 64m ${CMAKE_BINARY_DIR}/emulation/${FIRMWARE})
-    execute_process(COMMAND truncate -s 64m ${CMAKE_BINARY_DIR}/emulation/nvram.img)
-    execute_process(COMMAND dd if=${CMAKE_CURRENT_SOURCE_DIR}/third_party/firmware/tianocore/${FIRMWARE} of=${CMAKE_BINARY_DIR}/emulation/${FIRMWARE} conv=notrunc)
-    set(QEMU_FIRMWARE -drive if=pflash,format=raw,file=${CMAKE_BINARY_DIR}/emulation/${FIRMWARE},readonly -drive if=pflash,format=raw,file=$(CMAKE_BINARY_DIR)/emulation/nvram.img)
+    # @todo
+endif ()
+
+# 如果 ENABLE_GDB 为 ON
+if (ENABLE_GDB)
+list(APPEND QEMU_FLAGS 
+    # 等待 gdb 连接
+    -S
+    # 使用 1234 端口
+    -gdb tcp::1234
+)
 endif ()
 
 # 运行 qemu

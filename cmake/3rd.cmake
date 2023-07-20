@@ -115,24 +115,24 @@ include(${CPM_DOWNLOAD_LOCATION})
 # if (opensbi_ADDED)
 #   # 编译 opensbi
 #   add_custom_target(opensbi
-#           # make 时编译
-#           ALL
-#           WORKING_DIRECTORY ${opensbi_SOURCE_DIR}
-#           COMMAND 
-#           ${CMAKE_COMMAND} 
-#           -E 
-#           make_directory 
-#           ${opensbi_BINARY_DIR}
-#           COMMAND
-#             make
-#             # @todo 这个工具链只在 ubuntu 上测试过
-#             CROSS_COMPILE=riscv64-linux-gnu-
-#             FW_JUMP=y 
-#             FW_JUMP_ADDR=0x80200000
-#             PLATFORM_RISCV_XLEN=64
-#             PLATFORM=generic
-#             O=${opensbi_BINARY_DIR}
-#           COMMENT "build opensbi..."
+#     COMMENT "build opensbi..."
+#     # make 时编译
+#     ALL
+#     WORKING_DIRECTORY ${opensbi_SOURCE_DIR}
+#     COMMAND 
+#     ${CMAKE_COMMAND} 
+#     -E 
+#     make_directory 
+#     ${opensbi_BINARY_DIR}
+#     COMMAND
+#       make
+#       # @todo 这个工具链只在 ubuntu 上测试过
+#       CROSS_COMPILE=riscv64-linux-gnu-
+#       FW_JUMP=y 
+#       FW_JUMP_ADDR=0x80200000
+#       PLATFORM_RISCV_XLEN=64
+#       PLATFORM=generic
+#       O=${opensbi_BINARY_DIR}
 #   )
 # endif()
 
@@ -226,7 +226,6 @@ if (ovmf_ADDED)
   )
 endif()
 
-
 # https://github.com/gdbinit/Gdbinit
 # @todo 下载下来的文件为 makefile 形式，需要自己编译
 CPMAddPackage(
@@ -236,31 +235,22 @@ CPMAddPackage(
   DOWNLOAD_ONLY True
 )
 if (gdbinit_ADDED)
-  if (ENABLE_DEBUG)
-  add_custom_target(gdbinit
-    COMMENT "build gnu-efi ..."
-    # make 时编译
-    ALL
-    WORKING_DIRECTORY ${gdbinit_SOURCE_DIR}
-    # 复制到根目录下并重命名
-    COMMAND 
-      ${CMAKE_COMMAND} 
-      -E
-      copy 
-      ${gdbinit_SOURCE_DIR}/gdbinit
-      ${CMAKE_SOURCE_DIR}/.gdbinit
-)
+  if (ENABLE_GDB)
+    add_custom_target(gdbinit
+      COMMENT "build gnu-efi ..."
+      # make 时编译
+      ALL
+      WORKING_DIRECTORY ${gdbinit_SOURCE_DIR}
+      # 复制到根目录下并重命名
+      COMMAND 
+        ${CMAKE_COMMAND} 
+        -E
+        copy 
+        ${gdbinit_SOURCE_DIR}/gdbinit
+        ${CMAKE_SOURCE_DIR}/.gdbinit
+    )
   endif()
 endif()
-
-# # https://github.com/gdbinit/lldbinit
-# # @todo 下载下来的文件为 makefile 形式，需要自己编译
-# CPMAddPackage(
-#   NAME lldbinit
-#   GIT_REPOSITORY https://github.com/gdbinit/lldbinit.git
-#   GIT_TAG 1fe8df74ccd80836ddae73da4207dc63fcaf388a
-#   DOWNLOAD_ONLY True
-# )
 
 # # https://github.com/tianocore/edk2
 # # @todo 下载下来的文件为 makefile 形式，需要自己编译
