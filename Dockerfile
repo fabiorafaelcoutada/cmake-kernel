@@ -5,12 +5,12 @@
 # Dockerfile for MRNIU/cmake-kernel.
 
 ARG BASE=ubuntu:20.04
-ARG PROJECT_NAME=cmake-init
+ARG PROJECT_NAME=cmake-kernel
 ARG WORKSPACE=/workspace
 
 # BUILD
 
-FROM $BASE AS cmake-init-build
+FROM $BASE AS cmake-kernel-build
 
 ARG PROJECT_NAME
 ARG WORKSPACE
@@ -18,10 +18,11 @@ ARG COMPILER_FLAGS="-j 4"
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt update
-RUN apt install -y --no-install-recommends sudo \
-    && echo 'user ALL=(ALL) NOPASSWD: ALL' >/etc/sudoers.d/user
-RUN apt install -y --no-install-recommends cmake git build-essential
+RUN \
+    apt update \
+    && apt install -y --no-install-recommends sudo \
+    && echo 'user ALL=(ALL) NOPASSWD: ALL' >/etc/sudoers.d/user \
+    && apt install -y --no-install-recommends cmake git build-essential
 
 ENV PROJECT_DIR="$WORKSPACE/$PROJECT_NAME"
 
@@ -49,7 +50,7 @@ RUN cmake --build build --target install
 
 # DEPLOY
 
-FROM $BASE AS cmake-init
+FROM $BASE AS cmake-kernel
 
 ARG PROJECT_NAME
 ARG WORKSPACE
@@ -59,4 +60,4 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt update
 RUN apt install -y --no-install-recommends cmake
 
-COPY --from=cmake-init-build $WORKSPACE/$PROJECT_NAME-install $WORKSPACE/$PROJECT_NAME
+COPY --from=cmake-kernel-build $WORKSPACE/$PROJECT_NAME-install $WORKSPACE/$PROJECT_NAME
