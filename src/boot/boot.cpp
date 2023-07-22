@@ -32,16 +32,14 @@ efi_main(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE* systab) {
     EFI_GUID          loaded_image_protocol = LOADED_IMAGE_PROTOCOL;
     EFI_STATUS        efi_status;
     EFI_LOADED_IMAGE* li;
-    UINTN             pat = PoolAllocationType;
+    EFI_MEMORY_TYPE             pat = PoolAllocationType;
     VOID*             void_li_p;
 
     InitializeLib(image_handle, systab);
-    PoolAllocationType = 2; /* klooj */
+    PoolAllocationType = EfiLoaderData;
 
     Print(L"Hello World! (0xd=0x%x, 13=%d)\n", 13, 13);
-
     Print(L"before InitializeLib(): PoolAllocationType=%d\n", pat);
-
     Print(L" after InitializeLib(): PoolAllocationType=%d\n",
           PoolAllocationType);
 
@@ -53,7 +51,7 @@ efi_main(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE* systab) {
 
     efi_status = uefi_call_wrapper(BS->HandleProtocol, 3, image_handle,
                                    &loaded_image_protocol, &void_li_p);
-    li         = void_li_p;
+    li         = (EFI_LOADED_IMAGE*)void_li_p;
 
     Print(L"%xh (%r)\n", efi_status, efi_status);
 
@@ -80,33 +78,6 @@ efi_main(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE* systab) {
     Print(L"  li->ImageCodeType:   %xh\n", li->ImageCodeType);
     Print(L"  li->ImageDataType:   %xh\n", li->ImageDataType);
     Print(L"  li->Unload:          %xh\n", li->Unload);
-
-#if 0
-typedef struct {
-    UINT32                          Revision;
-    EFI_HANDLE                      ParentHandle;
-    struct _EFI_SYSTEM_TABLE        *SystemTable;
-
-    // Source location of image
-    EFI_HANDLE                      DeviceHandle;
-    EFI_DEVICE_PATH                 *FilePath;
-    VOID                            *Reserved;
-
-    // Images load options
-    UINT32                          LoadOptionsSize;
-    VOID                            *LoadOptions;
-
-    // Location of where image was loaded
-    VOID                            *ImageBase;
-    UINT64                          ImageSize;
-    EFI_MEMORY_TYPE                 ImageCodeType;
-    EFI_MEMORY_TYPE                 ImageDataType;
-
-    // If the driver image supports a dynamic unload request
-    EFI_IMAGE_UNLOAD                Unload;
-
-} EFI_LOADED_IMAGE;
-#endif
 
     return EFI_SUCCESS;
 }

@@ -52,7 +52,7 @@ else ()
     # 显示 make 细节
     set(CMAKE_VERBOSE_MAKEFILE ON)
 endif ()
-message("ENABLE_BUILD_RELEASE is: ${ENABLE_BUILD_RELEASE}")
+message(STATUS "ENABLE_BUILD_RELEASE is: ${ENABLE_BUILD_RELEASE}")
 
 # 设置构建使用的工具，默认为 make
 if (ENABLE_GENERATOR_MAKE)
@@ -60,14 +60,14 @@ if (ENABLE_GENERATOR_MAKE)
 else ()
     set(GENERATOR_COMMAND ninja)
 endif ()
-message("GENERATOR_COMMAND is: ${GENERATOR_COMMAND}")
+message(STATUS "ENABLE_GENERATOR_MAKE is: ${ENABLE_GENERATOR_MAKE}")
 
 # 要运行的平台
 list(APPEND VALID_PLATFORM qemu)
 if (NOT DEFINED PLATFORM)
     set(PLATFORM qemu)
 endif ()
-message("PLATFORM is: ${PLATFORM}")
+message(STATUS "PLATFORM is: ${PLATFORM}")
 # 如果不合法则报错
 if (NOT PLATFORM IN_LIST VALID_PLATFORM)
     message(FATAL_ERROR "PLATFORM must be one of ${VALID_PLATFORM}")
@@ -79,7 +79,7 @@ list(APPEND VALID_TARGET_ARCH x86_64 riscv64 aarch64)
 if (NOT DEFINED TARGET_ARCH)
     set(TARGET_ARCH x86_64)
 endif ()
-message("TARGET_ARCH is: ${TARGET_ARCH}")
+message(STATUS "TARGET_ARCH is: ${TARGET_ARCH}")
 # 如果不合法则报错
 if (NOT TARGET_ARCH IN_LIST VALID_TARGET_ARCH)
     message(FATAL_ERROR "TARGET_ARCH must be one of ${VALID_TARGET_ARCH}")
@@ -90,10 +90,10 @@ if (ENABLE_COMPILER_GNU)
     # gcc 工具链文件的命名规则：target-host-gcc.cmake(目标架构-本机架构-gcc.cmake)
     set(CMAKE_TOOLCHAIN_FILE ${CMAKE_MODULE_PATH}/${TARGET_ARCH}-${CMAKE_HOST_SYSTEM_PROCESSOR}-gcc.cmake)
 else ()
-    set(CMAKE_TOOLCHAIN_FILE ${CMAKE_MODULE_PATH}/${TARGET_ARCH}-${CMAKE_HOST_SYSTEM_PROCESSOR}-clang.cmake)
+    set(CMAKE_TOOLCHAIN_FILE ${CMAKE_MODULE_PATH}/clang.cmake)
 endif ()
-message("CMAKE_TOOLCHAIN_FILE is: ${CMAKE_TOOLCHAIN_FILE}")
-
+message(STATUS "ENABLE_COMPILER_GNU is: ${ENABLE_COMPILER_GNU}")
+message(STATUS "CMAKE_TOOLCHAIN_FILE is: ${CMAKE_TOOLCHAIN_FILE}")
 # 编译器只支持 gnu-gcc 或 clang
 if (NOT ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang"))
     message(FATAL_ERROR "Only support gnu-gcc/clang")

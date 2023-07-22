@@ -23,6 +23,7 @@ add_header_3rd(${PROJECT_NAME})
 
 target_compile_options(${PROJECT_NAME} PRIVATE
         -fpermissive -mno-red-zone -fshort-wchar -Wall -Wextra
+        -DGNU_EFI_USE_MS_ABI
         )
 
 target_link_options(${PROJECT_NAME} PRIVATE
