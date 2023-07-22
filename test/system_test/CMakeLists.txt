@@ -14,3 +14,4 @@ project(
 )
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/gnu_efi_test)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/opensbi_test)

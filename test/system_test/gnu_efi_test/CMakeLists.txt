@@ -28,13 +28,13 @@ target_compile_options(${PROJECT_NAME} PRIVATE
 
 target_link_options(${PROJECT_NAME} PRIVATE
         -nostdlib -shared -Wl,-Bsymbolic
+        -T ${CMAKE_SOURCE_DIR}/src/arch/${TARGET_ARCH}/link.ld
         )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
         ${gnu-efi_BINARY_DIR}/gnuefi/crt0-efi-${TARGET_ARCH}.o
         ${gnu-efi_BINARY_DIR}/gnuefi/libgnuefi.a
         ${gnu-efi_BINARY_DIR}/lib/libefi.a
-        -T ${CMAKE_SOURCE_DIR}/src/arch/${TARGET_ARCH}/link.ld
         )
 
 add_custom_target(${PROJECT_NAME}.efi DEPENDS ${PROJECT_NAME})

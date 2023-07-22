@@ -16,7 +16,7 @@ TARGET_ARCH=x86_64
 # TARGET_ARCH=aarch64
 
 # 是否使用 gcc，否则使用 clang
-USE_GNU=OFF
+USE_GNU=ON
 
 if [[ ${USE_GNU} == "ON" ]];then
     CMAKE_TOOLCHAIN_FILE=`pwd`/cmake/`arch`-${TARGET_ARCH}-gcc.cmake
