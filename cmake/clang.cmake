@@ -17,11 +17,11 @@ elseif (UNIX)
     message(STATUS "Now is UNIX-like OS's.")
     # clang
     find_program(Compiler_clang++ clang++)
-    if (NOT Compiler_clang)
+    if (NOT Compiler_clang++)
         message(FATAL_ERROR "clang++ not found.\n"
                 "Run `sudo apt-get install -y clang clang++` to install.")
     else ()
-        message(STATUS "Found clang++ ${Compiler_clang}")
+        message(STATUS "Found clang++ ${Compiler_clang++}")
     endif ()
 
     set(CMAKE_C_COMPILER clang)

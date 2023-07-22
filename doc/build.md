@@ -97,7 +97,6 @@
 | :--------------------: | :------------------------------: | :--: | :-------------------------------------: |
 |  ENABLE_BUILD_RELEASE  |           ON/OFF(OFF)            | BOOL |              是否为发布版               |
 | ENABLE_GENERATOR_MAKE  |            ON/OFF(ON)            | BOOL |  是否使用 make 构建，OFF 则使用 ninja   |
-|  ENABLE_COMPILER_GNU   |            ON/OFF(ON)            | BOOL |     是否使用 gcc，OFF 则使用 clang      |
 |     ENABLE_GNU_EFI     |            ON/OFF(ON)            | BOOL | 是否使用 gnu-efi，OFF 则使用 posix-uefi |
 |  ENABLE_TEST_COVERAGE  |            ON/OFF(ON)            | BOOL |           是否开启测试覆盖率            |
 |       ENABLE_GDB       |           ON/OFF(OFF)            | BOOL |            是否启用 gdb 调试            |
@@ -127,6 +126,7 @@ make run
 1. 提供 gcc/clang 的支持。
 
 2. 需要独立的  CMAKE_TOOLCHAIN_FILE 指定编译器。
+3. gcc 工具链文件的命名规则：host-target-gcc.cmake(本机架构-目标架构-gcc.cmake)
 
 支持的组合如下：
 

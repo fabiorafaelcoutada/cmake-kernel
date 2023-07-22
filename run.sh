@@ -15,12 +15,21 @@ TARGET_ARCH=x86_64
 # TARGET_ARCH=riscv64
 # TARGET_ARCH=aarch64
 
-# 重新编译
+# 是否使用 gcc，否则使用 clang
+USE_GNU=OFF
+
+if [[ ${USE_GNU} == "ON" ]];then
+    CMAKE_TOOLCHAIN_FILE=`pwd`/cmake/`arch`-${TARGET_ARCH}-gcc.cmake
+else
+    CMAKE_TOOLCHAIN_FILE=`pwd`/cmake/clang.cmake
+fi
+
+# 编译
 mkdir -p ./build_${TARGET_ARCH}/
 cd ./build_${TARGET_ARCH}
 # @todo 在使用 CLion 时，在 ide 内部添加 -DUSE_IDE=ON 以让 ide 自动处理 cmake
 cmake \
+  -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} \
   -DTARGET_ARCH=${TARGET_ARCH} \
-  -DENABLE_COMPILER_GNU=OFF \
   ..
 make run

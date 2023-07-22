@@ -35,8 +35,6 @@ set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
 option(ENABLE_BUILD_RELEASE "Build as release" OFF)
 # 是否使用 make 构建，默认为 ON
 option(ENABLE_GENERATOR_MAKE "Use make or ninja" ON)
-# 是否使用 gcc，默认为 ON
-option(ENABLE_COMPILER_GNU "Use gcc or clang" ON)
 # 是否使用 gnu-efi，默认为 ON，仅在 x86_64 平台有效
 option(ENABLE_GNU_EFI "Use gnu efi" ON)
 # 是否开启测试覆盖率，默认为 ON
@@ -85,14 +83,6 @@ if (NOT TARGET_ARCH IN_LIST VALID_TARGET_ARCH)
     message(FATAL_ERROR "TARGET_ARCH must be one of ${VALID_TARGET_ARCH}")
 endif ()
 
-# 设置编译器
-if (ENABLE_COMPILER_GNU)
-    # gcc 工具链文件的命名规则：target-host-gcc.cmake(目标架构-本机架构-gcc.cmake)
-    set(CMAKE_TOOLCHAIN_FILE ${CMAKE_MODULE_PATH}/${TARGET_ARCH}-${CMAKE_HOST_SYSTEM_PROCESSOR}-gcc.cmake)
-else ()
-    set(CMAKE_TOOLCHAIN_FILE ${CMAKE_MODULE_PATH}/clang.cmake)
-endif ()
-message(STATUS "ENABLE_COMPILER_GNU is: ${ENABLE_COMPILER_GNU}")
 message(STATUS "CMAKE_TOOLCHAIN_FILE is: ${CMAKE_TOOLCHAIN_FILE}")
 # 编译器只支持 gnu-gcc 或 clang
 if (NOT ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang"))
