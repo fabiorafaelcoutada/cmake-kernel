@@ -21,5 +21,6 @@ cd ./build_${TARGET_ARCH}
 # @todo 在使用 CLion 时，在 ide 内部添加 -DUSE_IDE=ON 以让 ide 自动处理 cmake
 cmake \
   -DTARGET_ARCH=${TARGET_ARCH} \
+  -DENABLE_COMPILER_GNU=OFF \
   ..
 make run
