@@ -24,22 +24,25 @@ if (${PROJECT_SOURCE_DIR} STREQUAL ${PROJECT_BINARY_DIR})
 endif ()
 
 # 设置辅助 cmake 脚本路径
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
-# 导入配置
-include(config)
+# 导入项目配置
+include(project_config)
 # 导入头文件处理
 include(add_header)
 
 # 导入第三方依赖
 include(3rd)
 
+# 导入编译配置
+include(compile_config)
+
 # 导入函数
 include(functions)
 
 # 添加要编译的目录
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/test)
+add_subdirectory(${PROJECT_SOURCE_DIR}/src)
+add_subdirectory(${PROJECT_SOURCE_DIR}/test)
 
 # readelf -a
 readelf_a(${BOOT_ELF_OUTPUT_NAME})
@@ -51,14 +54,10 @@ objdump_D(${BOOT_ELF_OUTPUT_NAME})
 # 将引导调整为 efi
 elf2efi(${BOOT_ELF_OUTPUT_NAME} ${BOOT_EFI_OUTPUT_NAME})
 
-# 创建 image 目录并将文件复制
-add_custom_target(image_uefi DEPENDS ${BOOT_EFI_OUTPUT_NAME} ${KERNEL_ELF_OUTPUT_NAME}
-        COMMENT "Copying bootloader and kernel"
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BINARY_DIR}/image/
-        COMMAND ${CMAKE_COMMAND} -E copy ${${BOOT_ELF_OUTPUT_NAME}_BINARY_DIR}/${BOOT_EFI_OUTPUT_NAME} ${PROJECT_BINARY_DIR}/image/
-        COMMAND ${CMAKE_COMMAND} -E copy ${${KERNEL_ELF_OUTPUT_NAME}_BINARY_DIR}/${KERNEL_ELF_OUTPUT_NAME} ${PROJECT_BINARY_DIR}/image/
-        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/tools/startup.nsh ${PROJECT_BINARY_DIR}/image/
-        )
+if (TARGET_ARCH STREQUAL "x86_64" OR TARGET_ARCH STREQUAL "aarch64")
+        # 创建 image 目录并将文件复制
+        make_uefi_dir(${BOOT_EFI_OUTPUT_NAME} ${KERNEL_ELF_OUTPUT_NAME} ${PROJECT_SOURCE_DIR}/tools/startup.nsh)
+endif ()
 
 # qemu 参数设置
 list(APPEND QEMU_FLAGS
@@ -80,7 +79,7 @@ elseif (TARGET_ARCH STREQUAL "riscv64")
             -machine virt
             -nographic
             -bios ${opensbi_BINARY_DIR}/platform/generic/firmware/fw_jump.elf
-            -kernel ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${KERNEL_ELF_OUTPUT_NAME}
+            -kernel ${${KERNEL_ELF_OUTPUT_NAME}_BINARY_DIR}/${KERNEL_ELF_OUTPUT_NAME}
             )
 elseif (TARGET_ARCH STREQUAL "aarch64")
     # @todo
@@ -97,8 +96,8 @@ if (ENABLE_GDB)
 endif ()
 
 # 运行 qemu
-add_custom_target(run DEPENDS image_uefi
+add_custom_target(run DEPENDS ${RUN_DEPENDS}
         COMMENT "Run SimpleKernel in qemu."
         COMMAND ${CMAKE_COMMAND} -E echo ${QEMU_FLAGS}
         COMMAND qemu-system-${TARGET_ARCH} ${QEMU_FLAGS}
-        )
+)

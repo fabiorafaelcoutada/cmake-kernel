@@ -23,8 +23,8 @@
  * @brief 内核入口
  * @param  _argc                   参数个数
  * @param  _argv                   参数列表
- * @return int32_t                 正常返回 0
+ * @return int                     正常返回 0
  */
-int32_t main(int _argc, char** _argv);
+int main(int _argc, char** _argv);
 
 #endif /* CMAKE_KERNEL_KERNEL_H */

@@ -47,3 +47,17 @@ function(elf2efi _elf _efi)
             --target=efi-app-${TARGET_ARCH} --subsystem=10
             )
 endfunction()
+
+# 创建 image 目录并将文件复制
+# _boot: boot efi 文件
+# _kernel: kernel elf 文件
+# _startup: startup.nsh 文件
+function(make_uefi_dir _boot _kernel _startup)
+    add_custom_target(image_uefi DEPENDS ${_boot} ${_kernel}
+    COMMENT "Copying bootloader and kernel"
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BINARY_DIR}/image/
+    COMMAND ${CMAKE_COMMAND} -E copy ${${BOOT_ELF_OUTPUT_NAME}_BINARY_DIR}/${_boot} ${PROJECT_BINARY_DIR}/image/
+    COMMAND ${CMAKE_COMMAND} -E copy ${${_kernel}_BINARY_DIR}/${_kernel} ${PROJECT_BINARY_DIR}/image/
+    COMMAND ${CMAKE_COMMAND} -E copy ${_startup} ${PROJECT_BINARY_DIR}/image/
+)
+endfunction()
