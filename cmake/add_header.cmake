@@ -44,4 +44,6 @@ function(add_header_3rd _target)
             ${gnu-efi_BINARY_DIR}/inc/${TARGET_ARCH})
     target_include_directories(${_target} PRIVATE
             ${gnu-efi_BINARY_DIR}/inc/protocol)
+    target_include_directories(${_target} PRIVATE
+            ${opensbi_BINARY_DIR}/include)
 endfunction()

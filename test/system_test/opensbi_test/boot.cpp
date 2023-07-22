@@ -18,62 +18,57 @@
 extern "C" {
 #endif
 
-#include "efi.h"
-#include "efilib.h"
+#include "cstdint"
 
-EFI_STATUS
-efi_main(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE* systab) {
-    EFI_GUID          loaded_image_protocol = LOADED_IMAGE_PROTOCOL;
-    EFI_STATUS        efi_status;
-    EFI_LOADED_IMAGE* li;
-    EFI_MEMORY_TYPE             pat = PoolAllocationType;
-    VOID*             void_li_p;
+#include "sbi/sbi_ecall_interface.h"
 
-    InitializeLib(image_handle, systab);
-    PoolAllocationType = EfiLoaderData;
+struct sbiret_t {
+    /// 错误码
+    long error;
+    /// 返回值
+    long value;
+};
 
-    Print(L"Hello World! (0xd=0x%x, 13=%d)\n", 13, 13);
-    Print(L"before InitializeLib(): PoolAllocationType=%d\n", pat);
-    Print(L" after InitializeLib(): PoolAllocationType=%d\n",
-          PoolAllocationType);
+sbiret_t
+ecall(unsigned long _arg0, unsigned long _arg1, unsigned long _arg2,
+               unsigned long _arg3, unsigned long _arg4, unsigned long _arg5,
+               int _fid, int _eid) {
+    sbiret_t  ret;
+    register uintptr_t a0 asm("a0") = (uintptr_t)(_arg0);
+    register uintptr_t a1 asm("a1") = (uintptr_t)(_arg1);
+    register uintptr_t a2 asm("a2") = (uintptr_t)(_arg2);
+    register uintptr_t a3 asm("a3") = (uintptr_t)(_arg3);
+    register uintptr_t a4 asm("a4") = (uintptr_t)(_arg4);
+    register uintptr_t a5 asm("a5") = (uintptr_t)(_arg5);
+    register uintptr_t a6 asm("a6") = (uintptr_t)(_fid);
+    register uintptr_t a7 asm("a7") = (uintptr_t)(_eid);
+    asm("ecall"
+        : "+r"(a0), "+r"(a1)
+        : "r"(a2), "r"(a3), "r"(a4), "r"(a5), "r"(a6), "r"(a7)
+        : "memory");
+    ret.error = a0;
+    ret.value = a1;
+    return ret;
+}
 
-    /*
-     * Locate loaded_image_handle instance.
-     */
+void put_char(const char _c) {
+    ecall(_c, 0, 0, 0, 0, 0, 0, SBI_EXT_0_1_CONSOLE_PUTCHAR);
+    return;
+}
 
-    Print(L"BS->HandleProtocol()  ");
+int main(int, char **) {
+    put_char('H');
+    put_char('e');
+    put_char('l');
+    put_char('l');
+    put_char('W');
+    put_char('o');
+    put_char('r');
+    put_char('l');
+    put_char('d');
+    put_char('!');
 
-    efi_status = uefi_call_wrapper(BS->HandleProtocol, 3, image_handle,
-                                   &loaded_image_protocol, &void_li_p);
-    li         = (EFI_LOADED_IMAGE*)void_li_p;
-
-    Print(L"%xh (%r)\n", efi_status, efi_status);
-
-    if (efi_status != EFI_SUCCESS) {
-        return efi_status;
-    }
-
-    Print(L"  li: %xh\n", li);
-
-    if (!li) {
-        return EFI_UNSUPPORTED;
-    }
-
-    Print(L"  li->Revision:        %xh\n", li->Revision);
-    Print(L"  li->ParentHandle:    %xh\n", li->ParentHandle);
-    Print(L"  li->SystemTable:     %xh\n", li->SystemTable);
-    Print(L"  li->DeviceHandle:    %xh\n", li->DeviceHandle);
-    Print(L"  li->FilePath:        %xh\n", li->FilePath);
-    Print(L"  li->Reserved:        %xh\n", li->Reserved);
-    Print(L"  li->LoadOptionsSize: %xh\n", li->LoadOptionsSize);
-    Print(L"  li->LoadOptions:     %xh\n", li->LoadOptions);
-    Print(L"  li->ImageBase:       %xh\n", li->ImageBase);
-    Print(L"  li->ImageSize:       %xh\n", li->ImageSize);
-    Print(L"  li->ImageCodeType:   %xh\n", li->ImageCodeType);
-    Print(L"  li->ImageDataType:   %xh\n", li->ImageDataType);
-    Print(L"  li->Unload:          %xh\n", li->Unload);
-
-    return EFI_SUCCESS;
+    return 0;
 }
 
 #ifdef __cplusplus

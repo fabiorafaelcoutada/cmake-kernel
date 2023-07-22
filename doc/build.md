@@ -113,6 +113,7 @@
 ```shell
 cmake \
   -DTARGET_ARCH=x86_64 \
+  -DCMAKE_TOOLCHAIN_FILE=./cmake/x86_64-x86_64-elf.cmake
   -DBOOT_ELF_OUTPUT_NAME="myboot.elf" \
   -DKERNEL_ELF_OUTPUT_NAME="mykernel.elf" \
   ..
@@ -130,23 +131,23 @@ make run
 
 支持的组合如下：
 
-|      host      | target  |              gcc              | clang |  CMAKE_TOOLCHAIN_FILE   |
-| :------------: | :-----: | :---------------------------: | :---: | :---------------------: |
-|   x86_64-osx   | x86_64  |        x86_64_elf-gcc         | TEST  |                         |
-|   x86_64-osx   | aarch64 | aarch64-unknown-linux-gnu-gcc | TEST  |                         |
-|   x86_64-osx   | riscv64 |    riscv64-unknown-elf-gcc    | TEST  |                         |
-|  aarch64-osx   | x86_64  |             TODO              | TODO  |                         |
-|  aarch64-osx   | aarch64 |             TODO              | TODO  |                         |
-|  aarch64-osx   | riscv64 |             TODO              | TODO  |                         |
-| x86_64-ubuntu  | x86_64  |              gcc              | TEST  | x86_64-x86_64-gcc.cmake |
-| x86_64-ubuntu  | aarch64 |     aarch64-linux-gnu-gcc     | TEST  |                         |
-| x86_64-ubuntu  | riscv64 |     riscv64-linux-gnu-gcc     | TEST  |                         |
-| aarch64-ubuntu | x86_64  |             TODO              | TEST  |                         |
-| aarch64-ubuntu | aarch64 |             TODO              | TEST  |                         |
-| aarch64-ubuntu | riscv64 |             TODO              | TEST  |                         |
-| riscv64-ubuntu | x86_64  |             TODO              | TODO  |                         |
-| riscv64-ubuntu | aarch64 |             TODO              | TODO  |                         |
-| riscv64-ubuntu | riscv64 |             TODO              | TODO  |                         |
+|      host      | target  |              gcc              | clang |   CMAKE_TOOLCHAIN_FILE   |
+| :------------: | :-----: | :---------------------------: | :---: | :----------------------: |
+|   x86_64-osx   | x86_64  |        x86_64_elf-gcc         | TEST  |                          |
+|   x86_64-osx   | aarch64 | aarch64-unknown-linux-gnu-gcc | TEST  |                          |
+|   x86_64-osx   | riscv64 |    riscv64-unknown-elf-gcc    | TEST  |                          |
+|  aarch64-osx   | x86_64  |             TODO              | TODO  |                          |
+|  aarch64-osx   | aarch64 |             TODO              | TODO  |                          |
+|  aarch64-osx   | riscv64 |             TODO              | TODO  |                          |
+| x86_64-ubuntu  | x86_64  |              gcc              | TEST  | x86_64-x86_64-gcc.cmake  |
+| x86_64-ubuntu  | aarch64 |     aarch64-linux-gnu-gcc     | TEST  |                          |
+| x86_64-ubuntu  | riscv64 |     riscv64-linux-gnu-gcc     | TEST  | x86_64-riscv64-gcc.cmake |
+| aarch64-ubuntu | x86_64  |             TODO              | TEST  |                          |
+| aarch64-ubuntu | aarch64 |             TODO              | TEST  |                          |
+| aarch64-ubuntu | riscv64 |             TODO              | TEST  |                          |
+| riscv64-ubuntu | x86_64  |             TODO              | TODO  |                          |
+| riscv64-ubuntu | aarch64 |             TODO              | TODO  |                          |
+| riscv64-ubuntu | riscv64 |             TODO              | TODO  |                          |
 
 host: 编译平台
 target: 内核要运行的平台
@@ -160,6 +161,7 @@ TEST: 需要进一步验证。
 ```shell
 cmake \
   -DTARGET_ARCH=x86_64 \
+  -DCMAKE_TOOLCHAIN_FILE=./cmake/x86_64-x86_64-elf.cmake
   -DBOOT_ELF_OUTPUT_NAME="myboot.elf" \
   -DKERNEL_ELF_OUTPUT_NAME="mykernel.elf" \
   -DENABLE_GDB=ON \
@@ -242,4 +244,20 @@ gdb-multiarch
     ```
 
 - TODO
+
+
+
+
+
+## TODO
+
+使用 gcc/clang 交叉编译 gnu-efi 
+
+riscv64 支持 uefi
+
+支持 posix-uefi
+
+
+
+
 

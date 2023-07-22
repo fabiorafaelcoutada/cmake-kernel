@@ -104,126 +104,145 @@ include(${CPM_DOWNLOAD_LOCATION})
 #   add_library(Freetype::Freetype ALIAS freetype)
 # endif()
 
-# # https://github.com/riscv-software-src/opensbi
-# CPMAddPackage(
-#   NAME opensbi
-#   GIT_REPOSITORY https://github.com/riscv-software-src/opensbi.git
-#   GIT_TAG v1.3
-#   VERSION 1.3
-#   DOWNLOAD_ONLY True
-# )
-# if (opensbi_ADDED)
-#   # 编译 opensbi
-#   add_custom_target(opensbi
-#     COMMENT "build opensbi..."
-#     # make 时编译
-#     ALL
-#     WORKING_DIRECTORY ${opensbi_SOURCE_DIR}
-#     COMMAND 
-#     ${CMAKE_COMMAND} 
-#     -E 
-#     make_directory 
-#     ${opensbi_BINARY_DIR}
-#     COMMAND
-#       make
-#       # @todo 这个工具链只在 ubuntu 上测试过
-#       CROSS_COMPILE=riscv64-linux-gnu-
-#       FW_JUMP=y 
-#       FW_JUMP_ADDR=0x80200000
-#       PLATFORM_RISCV_XLEN=64
-#       PLATFORM=generic
-#       O=${opensbi_BINARY_DIR}
-#   )
-# endif()
-
-# # https://gitlab.com/bztsrc/posix-uefi
-# CPMAddPackage(
-#   NAME posix-uefi
-#   GIT_REPOSITORY https://gitlab.com/bztsrc/posix-uefi.git
-#   GIT_TAG a643ed09f52575d402b934d6f1c6f08c64fd8c64
-#   DOWNLOAD_ONLY True
-# )
-# if (posix-uefi_ADDED)
-#   # 编译 posix-uefi
-#   add_custom_target(posix-uefi
-#           # make 时编译
-#           ALL
-#           WORKING_DIRECTORY ${posix-uefi_SOURCE_DIR}/uefi
-#           COMMAND
-#           # @todo 仅支持 gcc
-#             USE_GCC=1
-#             ARCH=${TARGET_ARCH}
-#             make
-#           COMMAND 
-#             ${CMAKE_COMMAND} 
-#             -E 
-#             make_directory 
-#             ${posix-uefi_BINARY_DIR}
-#           COMMAND 
-#             ${CMAKE_COMMAND} 
-#             -E 
-#             copy_directory
-#             ${posix-uefi_SOURCE_DIR}/build
-#             ${posix-uefi_BINARY_DIR}
-#           COMMAND
-#             make clean
-#           COMMAND
-#             rm -rf ${posix-uefi_SOURCE_DIR}/build
-#           COMMENT "build posix-uefi..."
-#   )
-# endif()
-
-# https://sourceforge.net/projects/gnu-efi/
-CPMAddPackage(
-        NAME gnu-efi
-        URL "https://sourceforge.net/projects/gnu-efi/files/gnu-efi-3.0.17.tar.bz2"
-        VERSION 3.0.17
-        DOWNLOAD_ONLY True
-)
-if (gnu-efi_ADDED)
-    # 编译 gnu-efi
-    add_custom_target(gnu-efi
-            COMMENT "build gnu-efi..."
-            # make 时编译
-            ALL
-            WORKING_DIRECTORY ${gnu-efi_SOURCE_DIR}
-            COMMAND
-            ${CMAKE_COMMAND}
-            -E
-            make_directory
-            ${gnu-efi_BINARY_DIR}
-            COMMAND
-            make
-            ARCH=${TARGET_ARCH}
-            OBJDIR=${gnu-efi_BINARY_DIR}
-            COMMAND
-            ${CMAKE_COMMAND}
-            -E
-            copy_directory
-            ${gnu-efi_SOURCE_DIR}/inc
-            ${gnu-efi_BINARY_DIR}/inc
-            )
+if (${TARGET_ARCH} STREQUAL "riscv64")
+    # https://github.com/riscv-software-src/opensbi
+    CPMAddPackage(
+    NAME opensbi
+    GIT_REPOSITORY https://github.com/riscv-software-src/opensbi.git
+    GIT_TAG v1.3
+    VERSION 1.3
+    DOWNLOAD_ONLY True
+    )
+    if (opensbi_ADDED)
+    # 编译 opensbi
+    add_custom_target(opensbi
+        COMMENT "build opensbi..."
+        # make 时编译
+        ALL
+        WORKING_DIRECTORY ${opensbi_SOURCE_DIR}
+        COMMAND 
+        ${CMAKE_COMMAND} 
+        -E 
+        make_directory 
+        ${opensbi_BINARY_DIR}
+        COMMAND
+        make
+        # @todo 这个工具链只在 ubuntu 上测试过
+        CROSS_COMPILE=riscv64-linux-gnu-
+        FW_JUMP=y 
+        FW_JUMP_ADDR=0x80200000
+        PLATFORM_RISCV_XLEN=64
+        PLATFORM=generic
+        O=${opensbi_BINARY_DIR}
+        COMMAND
+        ${CMAKE_COMMAND}
+        -E
+        copy_directory
+        ${opensbi_SOURCE_DIR}/include
+        ${opensbi_BINARY_DIR}/include
+    )
+    endif()
 endif ()
 
-# ovmf
-# @todo 使用互联网连接或从 edk2 编译
-CPMAddPackage(
-        NAME ovmf
-        SOURCE_DIR ${PROJECT_SOURCE_DIR}/tools/ovmf
-)
-if (ovmf_ADDED)
-    add_custom_target(ovmf
-            COMMENT "build ovmf ..."
-            # make 时编译
-            ALL
-            WORKING_DIRECTORY ${ovmf_SOURCE_DIR}
-            COMMAND
-            ${CMAKE_COMMAND}
-            -E
-            copy
-            ${ovmf_SOURCE_DIR}/*
-            ${ovmf_BINARY_DIR}
-            )
+if (${TARGET_ARCH} STREQUAL "x86_64" OR ${TARGET_ARCH} STREQUAL "aarch64")
+    # # https://gitlab.com/bztsrc/posix-uefi
+    # CPMAddPackage(
+    #   NAME posix-uefi
+    #   GIT_REPOSITORY https://gitlab.com/bztsrc/posix-uefi.git
+    #   GIT_TAG a643ed09f52575d402b934d6f1c6f08c64fd8c64
+    #   DOWNLOAD_ONLY True
+    # )
+    # if (posix-uefi_ADDED)
+    #   # 编译 posix-uefi
+    #   add_custom_target(posix-uefi
+    #           # make 时编译
+    #           ALL
+    #           WORKING_DIRECTORY ${posix-uefi_SOURCE_DIR}/uefi
+    #           COMMAND
+    #           # @todo 仅支持 gcc
+    #             USE_GCC=1
+    #             ARCH=${TARGET_ARCH}
+    #             make
+    #           COMMAND 
+    #             ${CMAKE_COMMAND} 
+    #             -E 
+    #             make_directory 
+    #             ${posix-uefi_BINARY_DIR}
+    #           COMMAND 
+    #             ${CMAKE_COMMAND} 
+    #             -E 
+    #             copy_directory
+    #             ${posix-uefi_SOURCE_DIR}/build
+    #             ${posix-uefi_BINARY_DIR}
+    #           COMMAND
+    #             make clean
+    #           COMMAND
+    #             rm -rf ${posix-uefi_SOURCE_DIR}/build
+    #           COMMENT "build posix-uefi..."
+    #   )
+    # endif()
+
+    # https://sourceforge.net/projects/gnu-efi/
+    CPMAddPackage(
+            NAME gnu-efi
+            URL "https://sourceforge.net/projects/gnu-efi/files/gnu-efi-3.0.17.tar.bz2"
+            VERSION 3.0.17
+            DOWNLOAD_ONLY True
+    )
+    if (gnu-efi_ADDED)
+        # 编译 gnu-efi
+        add_custom_target(gnu-efi
+                COMMENT "build gnu-efi..."
+                # make 时编译
+                ALL
+                WORKING_DIRECTORY ${gnu-efi_SOURCE_DIR}
+                COMMAND
+                ${CMAKE_COMMAND}
+                -E
+                make_directory
+                ${gnu-efi_BINARY_DIR}
+                COMMAND
+                make
+                ARCH=${TARGET_ARCH}
+                OBJDIR=${gnu-efi_BINARY_DIR}
+                COMMAND
+                ${CMAKE_COMMAND}
+                -E
+                copy_directory
+                ${gnu-efi_SOURCE_DIR}/inc
+                ${gnu-efi_BINARY_DIR}/inc
+                )
+    endif ()
+
+    # ovmf
+    # @todo 使用互联网连接或从 edk2 编译
+    CPMAddPackage(
+            NAME ovmf
+            SOURCE_DIR ${PROJECT_SOURCE_DIR}/tools/ovmf
+    )
+    if (ovmf_ADDED)
+        add_custom_target(ovmf
+                COMMENT "build ovmf ..."
+                # make 时编译
+                ALL
+                WORKING_DIRECTORY ${ovmf_SOURCE_DIR}
+                COMMAND
+                ${CMAKE_COMMAND}
+                -E
+                copy
+                ${ovmf_SOURCE_DIR}/*
+                ${ovmf_BINARY_DIR}
+                )
+    endif ()
+
+    # # https://github.com/tianocore/edk2
+    # # @todo 下载下来的文件为 makefile 形式，需要自己编译
+    # CPMAddPackage(
+    #   NAME edk2
+    #   GIT_REPOSITORY https://github.com/tianocore/edk2.git
+    #   GIT_TAG edk2-stable202305
+    #   DOWNLOAD_ONLY True
+    # )
 endif ()
 
 # https://github.com/gdbinit/Gdbinit
@@ -251,15 +270,6 @@ if (gdbinit_ADDED)
                 )
     endif ()
 endif ()
-
-# # https://github.com/tianocore/edk2
-# # @todo 下载下来的文件为 makefile 形式，需要自己编译
-# CPMAddPackage(
-#   NAME edk2
-#   GIT_REPOSITORY https://github.com/tianocore/edk2.git
-#   GIT_TAG edk2-stable202305
-#   DOWNLOAD_ONLY True
-# )
 
 # https://github.com/cpm-cmake/CPMLicenses.cmake
 # 保持在文件最后

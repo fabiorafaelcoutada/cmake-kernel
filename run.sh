@@ -11,8 +11,8 @@ set -e
 # 输出实际执行内容
 #set -x
 
-TARGET_ARCH=x86_64
-# TARGET_ARCH=riscv64
+# TARGET_ARCH=x86_64
+TARGET_ARCH=riscv64
 # TARGET_ARCH=aarch64
 
 # 是否使用 gcc，否则使用 clang
@@ -25,11 +25,12 @@ else
 fi
 
 # 编译
-mkdir -p ./build_${TARGET_ARCH}/
-cd ./build_${TARGET_ARCH}
+mkdir -p ./build
+cd ./build
 # @todo 在使用 CLion 时，在 ide 内部添加 -DUSE_IDE=ON 以让 ide 自动处理 cmake
 cmake \
   -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} \
   -DTARGET_ARCH=${TARGET_ARCH} \
+  -DENABLE_GDB=OFF \
   ..
 make run
