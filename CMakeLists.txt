@@ -78,6 +78,7 @@ elseif (TARGET_ARCH STREQUAL "riscv64")
     list(APPEND QEMU_FLAGS
             -machine virt
             -nographic
+            # 可选项，qemu7.0 自带了 opensbi1.0
             -bios ${opensbi_BINARY_DIR}/platform/generic/firmware/fw_jump.elf
             -kernel ${${KERNEL_ELF_OUTPUT_NAME}_BINARY_DIR}/${KERNEL_ELF_OUTPUT_NAME}
             )
