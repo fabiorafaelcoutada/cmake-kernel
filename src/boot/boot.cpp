@@ -49,7 +49,7 @@ efi_main(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE* systab) {
 
     Print(L"BS->HandleProtocol()  ");
 
-    efi_status = uefi_call_wrapper(BS->HandleProtocol, 3, image_handle,
+    efi_status = uefi_call_wrapper((void*)BS->HandleProtocol, 3, image_handle,
                                    &loaded_image_protocol, &void_li_p);
     li         = (EFI_LOADED_IMAGE*)void_li_p;
 

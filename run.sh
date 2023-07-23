@@ -25,8 +25,8 @@ else
 fi
 
 # 编译
-mkdir -p ./build
-cd ./build
+mkdir -p ./build_${TARGET_ARCH}
+cd ./build_${TARGET_ARCH}
 # @todo 在使用 CLion 时，在 ide 内部添加 -DUSE_IDE=ON 以让 ide 自动处理 cmake
 cmake \
   -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} \

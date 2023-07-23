@@ -15,16 +15,20 @@ project(
 
 enable_language(CXX)
 
-# ---- Add source files ----
+# 生成对象库
+add_library(${PROJECT_NAME} OBJECT
+        ${PROJECT_SOURCE_DIR}/driver.cpp
+)
 
-# Note: globbing sources is considered bad practice as CMake's generators may not detect new files
-# automatically. Keep that in mind when changing files, or explicitly mention them here.
-file(GLOB_RECURSE headers CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
-file(GLOB_RECURSE sources CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
-
-# ---- Create library ----
-
-# Note: for header-only libraries change all PUBLIC flags to INTERFACE and create an interface
-# target: add_library(${PROJECT_NAME} INTERFACE)
-add_library(${PROJECT_NAME} ${headers} ${sources})
+# 添加头文件
 add_header_driver(${PROJECT_NAME})
+
+# 添加编译参数
+target_compile_options(${PROJECT_NAME} PRIVATE
+        ${DEFAULT_COMPILE_OPTIONS}
+        )
+
+# 添加链接参数
+target_link_options(${PROJECT_NAME} PRIVATE
+        ${DEFAULT_LINK_OPTIONS}
+        )

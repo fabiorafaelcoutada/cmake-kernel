@@ -16,18 +16,17 @@ project(
 enable_language(ASM)
 enable_language(CXX)
 
-add_library(${PROJECT_NAME} STATIC
+# 生成对象库
+add_library(${PROJECT_NAME} OBJECT
+        $<$<STREQUAL:${TARGET_ARCH},riscv64>:
         ${PROJECT_SOURCE_DIR}/${TARGET_ARCH}/boot.S
-        ${PROJECT_SOURCE_DIR}/${TARGET_ARCH}/boot.cpp
+        >
+        ${PROJECT_SOURCE_DIR}/${TARGET_ARCH}/arch.cpp
 )
 
 # 添加头文件
+add_header_arch(${PROJECT_NAME})
 add_header_3rd(${PROJECT_NAME})
-
-# 添加依赖
-add_dependencies(${PROJECT_NAME}
-        opensbi
-)
 
 # 添加编译参数
 target_compile_options(${PROJECT_NAME} PRIVATE

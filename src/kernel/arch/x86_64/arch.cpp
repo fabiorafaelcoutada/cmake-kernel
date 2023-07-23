@@ -1,7 +1,7 @@
 
 /**
- * @file arch.h
- * @brief arch 头文件
+ * @file arch.cpp
+ * @brief arch cpp
  * @author Zone.N (Zone.Niuzh@hotmail.com)
  * @version 1.0
  * @date 2023-07-15
@@ -14,11 +14,16 @@
  * </table>
  */
 
-#ifndef CMAKE_ARCH_H
-#define CMAKE_ARCH_H
+#include "arch.h"
 
-#include "cstdint"
+int32_t arch(uint32_t _argc, uint8_t** _argv) {
+    (void)_argc;
+    (void)_argv;
 
-int32_t arch(uint32_t _argc, uint8_t** _argv);
+    // 进入死循环
+    while (1) {
+        ;
+    }
 
-#endif /* CMAKE_ARCH_H */
+    return 0;
+}

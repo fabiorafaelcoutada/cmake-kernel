@@ -1,7 +1,7 @@
 
 /**
- * @file boot.cpp
- * @brief boot cpp
+ * @file arch.cpp
+ * @brief arch cpp
  * @author Zone.N (Zone.Niuzh@hotmail.com)
  * @version 1.0
  * @date 2023-07-15
@@ -56,7 +56,7 @@ void put_char(const char _c) {
     return;
 }
 
-int boot_main(int, char **) {
+int arch(int, char **) {
     put_char('H');
     put_char('e');
     put_char('l');

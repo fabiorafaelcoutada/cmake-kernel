@@ -33,7 +33,7 @@ target_compile_options(${PROJECT_NAME} PRIVATE
 target_link_options(${PROJECT_NAME} PRIVATE
         -no-pie 
         -nostdlib
-        -T ${CMAKE_SOURCE_DIR}/src/arch/${TARGET_ARCH}/link.ld
+        -T ${CMAKE_SOURCE_DIR}/src/kernel/arch/${TARGET_ARCH}/link.ld
         )
 
 add_custom_target(test_opensbi DEPENDS ${PROJECT_NAME})
