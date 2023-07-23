@@ -97,7 +97,7 @@ endif ()
 
 # 运行 qemu
 add_custom_target(run DEPENDS ${RUN_DEPENDS}
-        COMMENT "Run SimpleKernel in qemu."
+        COMMENT "Run Kernel in qemu ..."
         COMMAND ${CMAKE_COMMAND} -E echo ${QEMU_FLAGS}
         COMMAND qemu-system-${TARGET_ARCH} ${QEMU_FLAGS}
 )
