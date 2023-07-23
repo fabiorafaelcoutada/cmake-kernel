@@ -117,3 +117,18 @@ list(APPEND DEFAULT_LINK_LIB
         >
     >
 )
+
+# 编译依赖
+if (${TARGET_ARCH} STREQUAL "x86_64")
+    list(APPEND COMPILE_DEPENDS
+    gnu-efi
+    )
+elseif(${TARGET_ARCH} STREQUAL "riscv64")
+    list(APPEND COMPILE_DEPENDS
+    opensbi
+    )
+elseif(${TARGET_ARCH} STREQUAL "aarch64")
+    list(APPEND COMPILE_DEPENDS
+    gnu-efi
+    )
+endif()

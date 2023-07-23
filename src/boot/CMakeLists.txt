@@ -19,10 +19,13 @@ add_executable(${PROJECT_NAME}
         boot.cpp
         )
 
+# 添加头文件
+add_header_boot(${PROJECT_NAME})
+add_header_3rd(${PROJECT_NAME})
+
 # 添加依赖
 add_dependencies(${PROJECT_NAME}
-        gnu-efi
-        ovmf
+        ${COMPILE_DEPENDS}
 )
 
 # 添加编译参数
@@ -34,10 +37,6 @@ target_compile_options(${PROJECT_NAME} PRIVATE
 target_link_options(${PROJECT_NAME} PRIVATE
         ${DEFAULT_LINK_OPTIONS}
         )
-
-# 添加头文件
-add_header_boot(${PROJECT_NAME})
-add_header_3rd(${PROJECT_NAME})
 
 # 添加要链接的库
 target_link_libraries(${PROJECT_NAME} PRIVATE

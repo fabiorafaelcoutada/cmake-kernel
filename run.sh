@@ -11,8 +11,8 @@ set -e
 # 输出实际执行内容
 #set -x
 
-# TARGET_ARCH=x86_64
-TARGET_ARCH=riscv64
+TARGET_ARCH=x86_64
+# TARGET_ARCH=riscv64
 # TARGET_ARCH=aarch64
 
 # 是否使用 gcc，否则使用 clang
