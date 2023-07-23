@@ -29,15 +29,13 @@ list(APPEND DEFAULT_COMPILE_OPTIONS
         # 目标平台编译选项
         # @todo clang 交叉编译参数
         $<$<STREQUAL:${TARGET_ARCH},x86_64>:
-        # 
+        # 禁用 red-zone
         -mno-red-zone
         # 使用的 uefi 版本
         # -DEFI_FUNCTION_WRAPPER -DGNU_EFI_USE_MS_ABI -DHAVE_USE_MS_ABI
         -DENABLE_GNU_EFI=$<BOOL:${ENABLE_GNU_EFI}>
         >
         $<$<STREQUAL:${TARGET_ARCH},riscv64>:
-        # 生成 rv64imafdc 代码
-        -march=rv64imafdc
         >
         $<$<STREQUAL:${TARGET_ARCH},aarch64>:
         # 生成 armv8-a 代码
