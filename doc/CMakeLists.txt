@@ -19,17 +19,17 @@ if(NOT DOXYGEN_FOUND)
 endif()
 
 # 设置输入文件
-set(doxyfile_in ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
+set(doxyfile_in ${PROJECT_SOURCE_DIR}/Doxyfile.in)
 # 设置输出文件
-set(doxyfile ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
+set(doxyfile ${PROJECT_BINARY_DIR}/Doxyfile)
 
 # 将输入文件的 @VAR@ 替换成 cmake 变量，保存为输出文件
 configure_file(${doxyfile_in} ${doxyfile} @ONLY)
 
 # 创建 target 并通过 VERBATIM 将 cmake 参数传递给 doxygen
 add_custom_target(doc
-    COMMENT "Generating docs ..."
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMENT "Generating docs at ${PROJECT_BINARY_DIR}/html/index.html ..."
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
     COMMAND ${DOXYGEN_EXECUTABLE} ${doxyfile}
     VERBATIM
 )

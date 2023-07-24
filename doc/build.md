@@ -192,7 +192,25 @@ gdb-multiarch
 
 ### 文档生成
 
+需要安装的程序
+
+```shell
+sudo apt install -y doxygen graphviz 
+```
+
+生成文档
+
+```shell
+make doc
+```
+
+使用浏览器打开 `cmake-kernel/build_x86_64/doc/html/index.html` 查看文档。
+
 ### 测试覆盖率
+
+### docker
+
+提供了统一的 ubuntu+gcc 编译环境
 
 ### 第三方资源
 
