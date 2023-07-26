@@ -267,9 +267,9 @@ if (gdbinit_ADDED)
             COMMAND
             echo "target remote ${QEMU_GDB_PORT}" >> ${CMAKE_SOURCE_DIR}/.gdbinit
             COMMAND
-            echo "add-symbol-file ${${BOOT_ELF_OUTPUT_NAME}_BINARY_DIR}/${BOOT_ELF_OUTPUT_NAME}" >> ${CMAKE_SOURCE_DIR}/.gdbinit
-            COMMAND
             echo "add-symbol-file ${${KERNEL_ELF_OUTPUT_NAME}_BINARY_DIR}/${KERNEL_ELF_OUTPUT_NAME}" >> ${CMAKE_SOURCE_DIR}/.gdbinit
+            COMMAND
+            echo "add-symbol-file ${${BOOT_ELF_OUTPUT_NAME}_BINARY_DIR}/${BOOT_ELF_OUTPUT_NAME}" >> ${CMAKE_SOURCE_DIR}/.gdbinit
             )
 endif ()
 
