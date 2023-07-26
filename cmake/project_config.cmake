@@ -35,8 +35,6 @@ option(ENABLE_GENERATOR_MAKE "Use make or ninja" ON)
 option(ENABLE_GNU_EFI "Use gnu efi" ON)
 # 是否开启测试覆盖率，默认为 ON
 option(ENABLE_TEST_COVERAGE "Enable test coverage" ON)
-# 是否开启 gdb 调试，默认为 OFF
-option(ENABLE_GDB "Enable debug" OFF)
 
 # 是否为 Debug 版本，默认为 Debug
 if (ENABLE_BUILD_RELEASE)
