@@ -56,8 +56,8 @@ objdump_D(${BOOT_ELF_OUTPUT_NAME})
 elf2efi(${BOOT_ELF_OUTPUT_NAME} ${BOOT_EFI_OUTPUT_NAME})
 
 if (TARGET_ARCH STREQUAL "x86_64" OR TARGET_ARCH STREQUAL "aarch64")
-        # 创建 image 目录并将文件复制
-        make_uefi_dir(${BOOT_EFI_OUTPUT_NAME} ${KERNEL_ELF_OUTPUT_NAME} ${PROJECT_SOURCE_DIR}/tools/startup.nsh)
+    # 创建 image 目录并将文件复制
+    make_uefi_dir(${BOOT_EFI_OUTPUT_NAME} ${KERNEL_ELF_OUTPUT_NAME} ${PROJECT_SOURCE_DIR}/tools/startup.nsh)
 endif ()
 
 # qemu 参数设置
@@ -87,19 +87,21 @@ elseif (TARGET_ARCH STREQUAL "aarch64")
     # @todo
 endif ()
 
-# 如果 ENABLE_GDB 为 ON
-if (ENABLE_GDB)
-    list(APPEND QEMU_FLAGS
-            # 等待 gdb 连接
-            -S
-            # 使用 1234 端口
-            -gdb tcp::1234
-            )
-endif ()
-
 # 运行 qemu
 add_custom_target(run DEPENDS ${RUN_DEPENDS}
         COMMENT "Run Kernel in qemu ..."
         COMMAND ${CMAKE_COMMAND} -E echo ${QEMU_FLAGS}
         COMMAND qemu-system-${TARGET_ARCH} ${QEMU_FLAGS}
-)
+        )
+
+# 在 qemu 中调试
+add_custom_target(debug DEPENDS ${DEBUG_DEPENDS}
+        COMMENT "Debug Kernel in qemu ..."
+        COMMAND ${CMAKE_COMMAND} -E echo ${QEMU_FLAGS}
+        COMMAND qemu-system-${TARGET_ARCH}
+        ${QEMU_FLAGS}
+        # 等待 gdb 连接
+        -S
+        # 使用 1234 端口
+        -gdb tcp::1234
+        )

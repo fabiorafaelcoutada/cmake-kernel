@@ -107,41 +107,41 @@ include(${CPM_DOWNLOAD_LOCATION})
 if (${TARGET_ARCH} STREQUAL "riscv64")
     # https://github.com/riscv-software-src/opensbi
     CPMAddPackage(
-    NAME opensbi
-    GIT_REPOSITORY https://github.com/riscv-software-src/opensbi.git
-    GIT_TAG v1.3
-    VERSION 1.3
-    DOWNLOAD_ONLY True
+            NAME opensbi
+            GIT_REPOSITORY https://github.com/riscv-software-src/opensbi.git
+            GIT_TAG v1.3
+            VERSION 1.3
+            DOWNLOAD_ONLY True
     )
     if (opensbi_ADDED)
-    # 编译 opensbi
-    add_custom_target(opensbi
-        COMMENT "build opensbi..."
-        # make 时编译
-        ALL
-        WORKING_DIRECTORY ${opensbi_SOURCE_DIR}
-        COMMAND 
-        ${CMAKE_COMMAND} 
-        -E 
-        make_directory 
-        ${opensbi_BINARY_DIR}
-        COMMAND
-        make
-        # @todo 这个工具链只在 ubuntu 上测试过
-        CROSS_COMPILE=riscv64-linux-gnu-
-        FW_JUMP=y 
-        FW_JUMP_ADDR=0x80200000
-        PLATFORM_RISCV_XLEN=64
-        PLATFORM=generic
-        O=${opensbi_BINARY_DIR}
-        COMMAND
-        ${CMAKE_COMMAND}
-        -E
-        copy_directory
-        ${opensbi_SOURCE_DIR}/include
-        ${opensbi_BINARY_DIR}/include
-    )
-    endif()
+        # 编译 opensbi
+        add_custom_target(opensbi
+                COMMENT "build opensbi..."
+                # make 时编译
+                ALL
+                WORKING_DIRECTORY ${opensbi_SOURCE_DIR}
+                COMMAND
+                ${CMAKE_COMMAND}
+                -E
+                make_directory
+                ${opensbi_BINARY_DIR}
+                COMMAND
+                make
+                # @todo 这个工具链只在 ubuntu 上测试过
+                CROSS_COMPILE=riscv64-linux-gnu-
+                FW_JUMP=y
+                FW_JUMP_ADDR=0x80200000
+                PLATFORM_RISCV_XLEN=64
+                PLATFORM=generic
+                O=${opensbi_BINARY_DIR}
+                COMMAND
+                ${CMAKE_COMMAND}
+                -E
+                copy_directory
+                ${opensbi_SOURCE_DIR}/include
+                ${opensbi_BINARY_DIR}/include
+                )
+    endif ()
 endif ()
 
 if (${TARGET_ARCH} STREQUAL "x86_64" OR ${TARGET_ARCH} STREQUAL "aarch64")
@@ -254,21 +254,19 @@ CPMAddPackage(
         DOWNLOAD_ONLY True
 )
 if (gdbinit_ADDED)
-    if (ENABLE_GDB)
-        add_custom_target(gdbinit
-                COMMENT "build gnu-efi ..."
-                # make 时编译
-                ALL
-                WORKING_DIRECTORY ${gdbinit_SOURCE_DIR}
-                # 复制到根目录下并重命名
-                COMMAND
-                ${CMAKE_COMMAND}
-                -E
-                copy
-                ${gdbinit_SOURCE_DIR}/gdbinit
-                ${CMAKE_SOURCE_DIR}/.gdbinit
-                )
-    endif ()
+    add_custom_target(gdbinit
+            COMMENT "Generate gdbinit ..."
+            # make 时编译
+            ALL
+            WORKING_DIRECTORY ${gdbinit_SOURCE_DIR}
+            # 复制到根目录下并重命名
+            COMMAND
+            ${CMAKE_COMMAND}
+            -E
+            copy
+            ${gdbinit_SOURCE_DIR}/gdbinit
+            ${CMAKE_SOURCE_DIR}/.gdbinit
+            )
 endif ()
 
 # https://github.com/cpm-cmake/CPMLicenses.cmake

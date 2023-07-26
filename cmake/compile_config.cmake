@@ -77,7 +77,8 @@ list(APPEND DEFAULT_LINK_OPTIONS
         -z max-page-size=0x1000
         >
         $<$<STREQUAL:${TARGET_ARCH},riscv64>:
-        -no-pie 
+        # 不生成位置无关可执行代码
+        -no-pie
         >
         $<$<STREQUAL:${TARGET_ARCH},aarch64>:
         >
@@ -85,48 +86,48 @@ list(APPEND DEFAULT_LINK_OPTIONS
 
 # 库选项
 list(APPEND DEFAULT_LINK_LIB
-    # 目标平台编译选项
-    $<$<STREQUAL:${TARGET_ARCH},x86_64>:
+        # 目标平台编译选项
+        $<$<STREQUAL:${TARGET_ARCH},x86_64>:
         # 根据 uefi 链接对应的库
         $<$<BOOL:${ENABLE_GNU_EFI}>:
-            # ${gnu-efi_BINARY_DIR}/gnuefi/reloc_${TARGET_ARCH}.o
-            ${gnu-efi_BINARY_DIR}/gnuefi/crt0-efi-${TARGET_ARCH}.o
-            ${gnu-efi_BINARY_DIR}/gnuefi/libgnuefi.a
-            ${gnu-efi_BINARY_DIR}/lib/libefi.a
+        # ${gnu-efi_BINARY_DIR}/gnuefi/reloc_${TARGET_ARCH}.o
+        ${gnu-efi_BINARY_DIR}/gnuefi/crt0-efi-${TARGET_ARCH}.o
+        ${gnu-efi_BINARY_DIR}/gnuefi/libgnuefi.a
+        ${gnu-efi_BINARY_DIR}/lib/libefi.a
         >
         $<$<NOT:$<BOOL:${ENABLE_GNU_EFI}>>:
-            ${3RD_ARCHIVE_OUTPUT_DIRECTORY}/posix-uefi/crt0.o
-            ${3RD_LIBRARY_OUTPUT_DIRECTORY}/posix-uefi/libuefi.a
+        ${3RD_ARCHIVE_OUTPUT_DIRECTORY}/posix-uefi/crt0.o
+        ${3RD_LIBRARY_OUTPUT_DIRECTORY}/posix-uefi/libuefi.a
         >
-    >
-    $<$<STREQUAL:${TARGET_ARCH},riscv64>:
-    >
-    $<$<STREQUAL:${TARGET_ARCH},aarch64>:
+        >
+        $<$<STREQUAL:${TARGET_ARCH},riscv64>:
+        >
+        $<$<STREQUAL:${TARGET_ARCH},aarch64>:
         # 根据 uefi 链接对应的库
         $<$<BOOL:${ENABLE_GNU_EFI}>:
-            # ${gnu-efi_BINARY_DIR}/gnuefi/reloc_${TARGET_ARCH}.o
-            ${gnu-efi_BINARY_DIR}/gnuefi/crt0-efi-${TARGET_ARCH}.o
-            ${gnu-efi_BINARY_DIR}/gnuefi/libgnuefi.a
-            ${gnu-efi_BINARY_DIR}/lib/libefi.a
+        # ${gnu-efi_BINARY_DIR}/gnuefi/reloc_${TARGET_ARCH}.o
+        ${gnu-efi_BINARY_DIR}/gnuefi/crt0-efi-${TARGET_ARCH}.o
+        ${gnu-efi_BINARY_DIR}/gnuefi/libgnuefi.a
+        ${gnu-efi_BINARY_DIR}/lib/libefi.a
         >
         $<$<NOT:$<BOOL:${ENABLE_GNU_EFI}>>:
-            ${3RD_ARCHIVE_OUTPUT_DIRECTORY}/posix-uefi/crt0.o
-            ${3RD_LIBRARY_OUTPUT_DIRECTORY}/posix-uefi/libuefi.a
+        ${3RD_ARCHIVE_OUTPUT_DIRECTORY}/posix-uefi/crt0.o
+        ${3RD_LIBRARY_OUTPUT_DIRECTORY}/posix-uefi/libuefi.a
         >
-    >
-)
+        >
+        )
 
 # 编译依赖
 if (${TARGET_ARCH} STREQUAL "x86_64")
     list(APPEND COMPILE_DEPENDS
-    gnu-efi
-    )
-elseif(${TARGET_ARCH} STREQUAL "riscv64")
+            gnu-efi
+            )
+elseif (${TARGET_ARCH} STREQUAL "riscv64")
     list(APPEND COMPILE_DEPENDS
-    opensbi
-    )
-elseif(${TARGET_ARCH} STREQUAL "aarch64")
+            opensbi
+            )
+elseif (${TARGET_ARCH} STREQUAL "aarch64")
     list(APPEND COMPILE_DEPENDS
-    gnu-efi
-    )
-endif()
+            gnu-efi
+            )
+endif ()

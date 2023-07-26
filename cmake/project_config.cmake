@@ -102,17 +102,23 @@ endif ()
 # qemu 运行依赖
 if (${TARGET_ARCH} STREQUAL "x86_64")
     list(APPEND RUN_DEPENDS
-    ovmf
-    image_uefi
-    )
-elseif(${TARGET_ARCH} STREQUAL "riscv64")
+            ovmf
+            image_uefi
+            )
+elseif (${TARGET_ARCH} STREQUAL "riscv64")
     list(APPEND RUN_DEPENDS
-    opensbi
-    ${KERNEL_ELF_OUTPUT_NAME}
-    )
-elseif(${TARGET_ARCH} STREQUAL "aarch64")
+            opensbi
+            ${KERNEL_ELF_OUTPUT_NAME}
+            )
+elseif (${TARGET_ARCH} STREQUAL "aarch64")
     list(APPEND RUN_DEPENDS
-    ovmf
-    image_uefi
-    )
-endif()
+            ovmf
+            image_uefi
+            )
+endif ()
+
+# qemu 调试依赖
+list(APPEND DEBUG_DEPENDS
+        ${RUN_DEPENDS}
+        gdbinit
+        )

@@ -99,7 +99,6 @@
 | ENABLE_GENERATOR_MAKE  |            ON/OFF(ON)            | BOOL |  是否使用 make 构建，OFF 则使用 ninja   |
 |     ENABLE_GNU_EFI     |            ON/OFF(ON)            | BOOL | 是否使用 gnu-efi，OFF 则使用 posix-uefi |
 |  ENABLE_TEST_COVERAGE  |            ON/OFF(ON)            | BOOL |           是否开启测试覆盖率            |
-|       ENABLE_GDB       |           ON/OFF(OFF)            | BOOL |            是否启用 gdb 调试            |
 |        PLATFORM        |               qemu               | STR  |               运行的平台                |
 |      TARGET_ARCH       | x86_64, riscv64, aarch64(x86_64) | STR  |                目标架构                 |
 |  BOOT_ELF_OUTPUT_NAME  |            (boot.elf)            | STR  |             引导 elf 文件名             |

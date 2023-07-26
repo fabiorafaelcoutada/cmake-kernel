@@ -54,10 +54,10 @@ endfunction()
 # _startup: startup.nsh 文件
 function(make_uefi_dir _boot _kernel _startup)
     add_custom_target(image_uefi DEPENDS ${_boot} ${_kernel}
-    COMMENT "Copying bootloader and kernel"
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BINARY_DIR}/image/
-    COMMAND ${CMAKE_COMMAND} -E copy ${${BOOT_ELF_OUTPUT_NAME}_BINARY_DIR}/${_boot} ${PROJECT_BINARY_DIR}/image/
-    COMMAND ${CMAKE_COMMAND} -E copy ${${_kernel}_BINARY_DIR}/${_kernel} ${PROJECT_BINARY_DIR}/image/
-    COMMAND ${CMAKE_COMMAND} -E copy ${_startup} ${PROJECT_BINARY_DIR}/image/
-)
+            COMMENT "Copying bootloader and kernel"
+            COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BINARY_DIR}/image/
+            COMMAND ${CMAKE_COMMAND} -E copy ${${BOOT_ELF_OUTPUT_NAME}_BINARY_DIR}/${_boot} ${PROJECT_BINARY_DIR}/image/
+            COMMAND ${CMAKE_COMMAND} -E copy ${${_kernel}_BINARY_DIR}/${_kernel} ${PROJECT_BINARY_DIR}/image/
+            COMMAND ${CMAKE_COMMAND} -E copy ${_startup} ${PROJECT_BINARY_DIR}/image/
+            )
 endfunction()

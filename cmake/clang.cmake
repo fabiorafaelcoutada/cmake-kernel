@@ -32,7 +32,7 @@ elseif (UNIX)
     set(CMAKE_NM nm)
     set(CMAKE_OBJDUMP objdump)
     set(CMAKE_RANLIB ranlib)
-    
+
     # qemu
     find_program(QEMU qemu-system-x86_64)
     if (NOT QEMU)

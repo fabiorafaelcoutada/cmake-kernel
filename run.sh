@@ -31,6 +31,5 @@ cd ./build_${TARGET_ARCH}
 cmake \
   -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} \
   -DTARGET_ARCH=${TARGET_ARCH} \
-  -DENABLE_GDB=OFF \
   ..
 make run
