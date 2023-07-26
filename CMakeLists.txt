@@ -65,7 +65,7 @@ list(APPEND QEMU_FLAGS
         # 使用标准输出显示
         -serial stdio
         # 启动 telnet 服务，使用 2333 端口，不等待连接
-        -monitor telnet::2333,server,nowait
+        -monitor ${QEMU_MONITOR_ARG}
         )
 # 目标平台参数
 if (TARGET_ARCH STREQUAL "x86_64")
@@ -103,5 +103,5 @@ add_custom_target(debug DEPENDS ${DEBUG_DEPENDS}
         # 等待 gdb 连接
         -S
         # 使用 1234 端口
-        -gdb tcp::1234
+        -gdb ${QEMU_GDB_PORT}
         )

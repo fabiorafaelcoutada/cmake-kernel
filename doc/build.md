@@ -93,21 +93,21 @@
 
 根目录 CMakeList.txt 可用参数如下
 
-|          参数          |         合法值（默认值）         | 类型 |                  说明                   |
-| :--------------------: | :------------------------------: | :--: | :-------------------------------------: |
-|  ENABLE_BUILD_RELEASE  |           ON/OFF(OFF)            | BOOL |              是否为发布版               |
-| ENABLE_GENERATOR_MAKE  |            ON/OFF(ON)            | BOOL |  是否使用 make 构建，OFF 则使用 ninja   |
+|           参数           |             合法值（默认值）             |  类型  |               说明                |
+|:----------------------:|:--------------------------------:|:----:|:-------------------------------:|
+|  ENABLE_BUILD_RELEASE  |           ON/OFF(OFF)            | BOOL |             是否为发布版              |
+| ENABLE_GENERATOR_MAKE  |            ON/OFF(ON)            | BOOL |   是否使用 make 构建，OFF 则使用 ninja    |
 |     ENABLE_GNU_EFI     |            ON/OFF(ON)            | BOOL | 是否使用 gnu-efi，OFF 则使用 posix-uefi |
-|  ENABLE_TEST_COVERAGE  |            ON/OFF(ON)            | BOOL |           是否开启测试覆盖率            |
-|        PLATFORM        |               qemu               | STR  |               运行的平台                |
-|      TARGET_ARCH       | x86_64, riscv64, aarch64(x86_64) | STR  |                目标架构                 |
-|  BOOT_ELF_OUTPUT_NAME  |            (boot.elf)            | STR  |             引导 elf 文件名             |
-|  BOOT_EFI_OUTPUT_NAME  |            (boot.efi)            | STR  |             引导 efi 文件名             |
-| KERNEL_ELF_OUTPUT_NAME |           (kernel.elf)           | STR  |             内核 elf 文件名             |
-| KERNEL_EFI_OUTPUT_NAME |           (kernel.efi)           | STR  |             内核 efi 文件名             |
-|                        |                                  |      |                                         |
-|                        |                                  |      |                                         |
-|                        |                                  |      |                                         |
+|  ENABLE_TEST_COVERAGE  |            ON/OFF(ON)            | BOOL |            是否开启测试覆盖率            |
+|        PLATFORM        |               qemu               | STR  |              运行的平台              |
+|      TARGET_ARCH       | x86_64, riscv64, aarch64(x86_64) | STR  |              目标架构               |
+|  BOOT_ELF_OUTPUT_NAME  |            (boot.elf)            | STR  |           引导 elf 文件名            |
+|  BOOT_EFI_OUTPUT_NAME  |            (boot.efi)            | STR  |           引导 efi 文件名            |
+| KERNEL_ELF_OUTPUT_NAME |           (kernel.elf)           | STR  |           内核 elf 文件名            |
+| KERNEL_EFI_OUTPUT_NAME |           (kernel.efi)           | STR  |           内核 efi 文件名            |
+|     QEMU_GDB_PORT      |           (tcp::1234)            | STR  |          qemu gdb 调试端口          |
+|    QEMU_MONITOR_ARG    |   (telnet::2333,server,nowait)   | STR  |         qemu monitor 设置         |
+|                        |                                  |      |                                 |
 
 ```shell
 cmake \

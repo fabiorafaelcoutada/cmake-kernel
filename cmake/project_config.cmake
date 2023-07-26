@@ -120,3 +120,15 @@ list(APPEND DEBUG_DEPENDS
         ${RUN_DEPENDS}
         gdbinit
         )
+
+# qemu gdb 调试端口
+if (NOT DEFINED QEMU_GDB_PORT)
+    set(QEMU_GDB_PORT tcp::1234)
+endif ()
+
+# qemu monitor 参数
+if (NOT DEFINED QEMU_MONITOR_ARG)
+    set(QEMU_MONITOR_ARG
+            telnet::2333,server,nowait
+            )
+endif ()
