@@ -256,8 +256,6 @@ CPMAddPackage(
 if (gdbinit_ADDED)
     add_custom_target(gdbinit
             COMMENT "Generate gdbinit ..."
-            # make 时编译
-            ALL
             WORKING_DIRECTORY ${gdbinit_SOURCE_DIR}
             # 复制到根目录下并重命名
             COMMAND
@@ -266,6 +264,12 @@ if (gdbinit_ADDED)
             copy
             ${gdbinit_SOURCE_DIR}/gdbinit
             ${CMAKE_SOURCE_DIR}/.gdbinit
+            COMMAND
+            echo "target remote ${QEMU_GDB_PORT}" >> ${CMAKE_SOURCE_DIR}/.gdbinit
+            COMMAND
+            echo "add-symbol-file ${${BOOT_ELF_OUTPUT_NAME}_BINARY_DIR}/${BOOT_ELF_OUTPUT_NAME}" >> ${CMAKE_SOURCE_DIR}/.gdbinit
+            COMMAND
+            echo "add-symbol-file ${${KERNEL_ELF_OUTPUT_NAME}_BINARY_DIR}/${KERNEL_ELF_OUTPUT_NAME}" >> ${CMAKE_SOURCE_DIR}/.gdbinit
             )
 endif ()
 
