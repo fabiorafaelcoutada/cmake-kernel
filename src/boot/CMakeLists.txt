@@ -17,7 +17,6 @@ enable_language(CXX)
 
 add_executable(${PROJECT_NAME}
         boot.cpp
-        load_elf.cpp
         )
 
 # 添加头文件
