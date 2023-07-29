@@ -25,14 +25,13 @@ list(APPEND DEFAULT_COMPILE_OPTIONS
         -fshort-wchar
         # 允许 wchar_t
         -fpermissive
-
         # 目标平台编译选项
         # @todo clang 交叉编译参数
         $<$<STREQUAL:${TARGET_ARCH},x86_64>:
         # 禁用 red-zone
         -mno-red-zone
         # 使用的 uefi 版本
-        # -DEFI_FUNCTION_WRAPPER -DGNU_EFI_USE_MS_ABI -DHAVE_USE_MS_ABI
+        -DGNU_EFI_USE_MS_ABI
         -DENABLE_GNU_EFI=$<BOOL:${ENABLE_GNU_EFI}>
         >
         $<$<STREQUAL:${TARGET_ARCH},riscv64>:
