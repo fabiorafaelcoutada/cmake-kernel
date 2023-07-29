@@ -28,14 +28,14 @@ extern "C" {
 #include <elf.h>
 
 EFI_STATUS
-efi_main(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE* systab) {
+efi_main(EFI_HANDLE _image_handle, EFI_SYSTEM_TABLE* _system_table) {
     EFI_GUID          loaded_image_protocol = LOADED_IMAGE_PROTOCOL;
     EFI_STATUS        efi_status;
     EFI_LOADED_IMAGE* li;
-    EFI_MEMORY_TYPE             pat = PoolAllocationType;
+    EFI_MEMORY_TYPE   pat = PoolAllocationType;
     VOID*             void_li_p;
 
-    InitializeLib(image_handle, systab);
+    InitializeLib(_image_handle, _system_table);
     PoolAllocationType = EfiLoaderData;
 
     Print(L"Hello World! (0xd=0x%x, 13=%d)\n", 13, 13);
@@ -49,7 +49,7 @@ efi_main(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE* systab) {
 
     Print(L"BS->HandleProtocol()  ");
 
-    efi_status = uefi_call_wrapper((void*)BS->HandleProtocol, 3, image_handle,
+    efi_status = uefi_call_wrapper((void*)BS->HandleProtocol, 3, _image_handle,
                                    &loaded_image_protocol, &void_li_p);
     li         = (EFI_LOADED_IMAGE*)void_li_p;
 

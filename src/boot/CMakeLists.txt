@@ -17,6 +17,7 @@ enable_language(CXX)
 
 add_executable(${PROJECT_NAME}
         boot.cpp
+        load_elf.cpp
         )
 
 # 添加头文件
@@ -26,7 +27,7 @@ add_header_3rd(${PROJECT_NAME})
 # 添加依赖
 add_dependencies(${PROJECT_NAME}
         ${COMPILE_DEPENDS}
-)
+        )
 
 # 添加编译参数
 target_compile_options(${PROJECT_NAME} PRIVATE
