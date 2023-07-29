@@ -21,57 +21,62 @@ extern "C" {
 #include "efi.h"
 #include "efilib.h"
 
-EFI_STATUS
-efi_main(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE* systab) {
-    EFI_GUID          loaded_image_protocol = LOADED_IMAGE_PROTOCOL;
-    EFI_STATUS        efi_status;
-    EFI_LOADED_IMAGE* li;
-    EFI_MEMORY_TYPE             pat = PoolAllocationType;
-    VOID*             void_li_p;
+#include <elf.h>
 
-    InitializeLib(image_handle, systab);
-    PoolAllocationType = EfiLoaderData;
+extern bool       check_for_fatal_error(IN EFI_STATUS const status,
+                                        IN const CHAR16*    error_message);
+extern EFI_STATUS debug_print_line(IN CHAR16* fmt, ...);
+extern EFI_STATUS
+                     load_kernel_image(IN EFI_FILE* const        root_file_system,
+                                       IN CHAR16* const          kernel_image_filename,
+                                       OUT EFI_PHYSICAL_ADDRESS* kernel_entry_point);
+extern const CHAR16* get_efi_error_message(IN EFI_STATUS const status);
+#define KERNEL_EXECUTABLE_PATH L"gnu-efi-test_kernel.elf"
 
-    Print(L"Hello World! (0xd=0x%x, 13=%d)\n", 13, 13);
-    Print(L"before InitializeLib(): PoolAllocationType=%d\n", pat);
-    Print(L" after InitializeLib(): PoolAllocationType=%d\n",
-          PoolAllocationType);
+EFI_STATUS EFIAPI efi_main(EFI_HANDLE        _image_handle,
+                           EFI_SYSTEM_TABLE* _system_table) {
+    EFI_STATUS                       status;
 
-    /*
-     * Locate loaded_image_handle instance.
-     */
+    EFI_FILE*                        root_file_system     = nullptr;
+    EFI_PHYSICAL_ADDRESS*            kernel_entry_point   = nullptr;
+    EFI_SIMPLE_FILE_SYSTEM_PROTOCOL* file_system_protocol = nullptr;
 
-    Print(L"BS->HandleProtocol()  ");
+    InitializeLib(_image_handle, _system_table);
 
-    efi_status = uefi_call_wrapper(BS->HandleProtocol, 3, image_handle,
-                                   &loaded_image_protocol, &void_li_p);
-    li         = (EFI_LOADED_IMAGE*)void_li_p;
+    Print(L"111111aaa\n");
+    debug_print_line((CHAR16*)L"Debug: Initialising File System service\n");
+    Print(L"1111222211aaa\n");
 
-    Print(L"%xh (%r)\n", efi_status, efi_status);
+    status = uefi_call_wrapper((void*)gBS->LocateProtocol, 3,
+                               &gEfiSimpleFileSystemProtocolGuid, nullptr,
+                               (void**)&file_system_protocol);
+    if (EFI_ERROR(status)) {
+        debug_print_line((CHAR16*)L"Fatal Error: Error locating Simple File "
+                                  L"System Protocol: %s\n",
+                         get_efi_error_message(status));
 
-    if (efi_status != EFI_SUCCESS) {
-        return efi_status;
+        return status;
     }
 
-    Print(L"  li: %xh\n", li);
+    debug_print_line((CHAR16*)L"Debug: Located Simple File System Protocol\n");
 
-    if (!li) {
-        return EFI_UNSUPPORTED;
+    status = uefi_call_wrapper((void*)file_system_protocol->OpenVolume, 2,
+                               file_system_protocol, &root_file_system);
+    if (check_for_fatal_error(status, (CHAR16*)L"Error opening root volume")) {
+        return status;
     }
 
-    Print(L"  li->Revision:        %xh\n", li->Revision);
-    Print(L"  li->ParentHandle:    %xh\n", li->ParentHandle);
-    Print(L"  li->SystemTable:     %xh\n", li->SystemTable);
-    Print(L"  li->DeviceHandle:    %xh\n", li->DeviceHandle);
-    Print(L"  li->FilePath:        %xh\n", li->FilePath);
-    Print(L"  li->Reserved:        %xh\n", li->Reserved);
-    Print(L"  li->LoadOptionsSize: %xh\n", li->LoadOptionsSize);
-    Print(L"  li->LoadOptions:     %xh\n", li->LoadOptions);
-    Print(L"  li->ImageBase:       %xh\n", li->ImageBase);
-    Print(L"  li->ImageSize:       %xh\n", li->ImageSize);
-    Print(L"  li->ImageCodeType:   %xh\n", li->ImageCodeType);
-    Print(L"  li->ImageDataType:   %xh\n", li->ImageDataType);
-    Print(L"  li->Unload:          %xh\n", li->Unload);
+    debug_print_line(L"Debug: Loading Kernel image\n");
+    status = load_kernel_image(root_file_system, KERNEL_EXECUTABLE_PATH,
+                               kernel_entry_point);
+    if (EFI_ERROR(status)) {
+        // In the case that loading the kernel image failed, the error
+        // message will have already been printed.
+        return status;
+    }
+
+    debug_print_line((CHAR16*)L"Debug: Set Kernel Entry Point to: '0x%llx'\n ",
+                     *kernel_entry_point);
 
     return EFI_SUCCESS;
 }
