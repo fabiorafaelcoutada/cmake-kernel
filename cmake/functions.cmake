@@ -12,7 +12,6 @@ function(readelf_a _elf)
     add_custom_target(readelf_a_${_elf}
             COMMENT "readelf -a ${_elf} ..."
             DEPENDS ${_elf}
-            POST_BUILD
             WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
             COMMAND ${CMAKE_READELF} -a ${${_elf}_BINARY_DIR}/${_elf} > ${${_elf}_BINARY_DIR}/${_elf}.readelf || (exit 0)
             )
@@ -25,7 +24,6 @@ function(objdump_D _elf)
     add_custom_target(objdump_D_${_elf}
             COMMENT "objdump -D ${_elf} ..."
             DEPENDS ${_elf}
-            POST_BUILD
             WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
             COMMAND ${CMAKE_OBJDUMP} -D ${${_elf}_BINARY_DIR}/${_elf} > ${${_elf}_BINARY_DIR}/${_elf}.disassembly
             )
