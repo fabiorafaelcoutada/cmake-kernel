@@ -18,20 +18,14 @@
 extern "C" {
 #endif
 
+#include "elf.h"
+
+#include "load_elf.h"
+
 #include "efi.h"
 #include "efilib.h"
 
-#include <elf.h>
-
-extern bool       check_for_fatal_error(IN EFI_STATUS const status,
-                                        IN const CHAR16*    error_message);
-extern EFI_STATUS debug_print_line(IN CHAR16* fmt, ...);
-extern EFI_STATUS
-                     load_kernel_image(IN EFI_FILE* const        root_file_system,
-                                       IN CHAR16* const          kernel_image_filename,
-                                       OUT EFI_PHYSICAL_ADDRESS* kernel_entry_point);
-extern const CHAR16* get_efi_error_message(IN EFI_STATUS const status);
-#define KERNEL_EXECUTABLE_PATH L"gnu-efi-test_kernel.elf"
+#define KERNEL_EXECUTABLE_PATH (CHAR16*)L"gnu-efi-test_kernel.elf"
 
 EFI_STATUS EFIAPI efi_main(EFI_HANDLE        _image_handle,
                            EFI_SYSTEM_TABLE* _system_table) {
@@ -41,32 +35,26 @@ EFI_STATUS EFIAPI efi_main(EFI_HANDLE        _image_handle,
     EFI_PHYSICAL_ADDRESS*            kernel_entry_point   = nullptr;
     EFI_SIMPLE_FILE_SYSTEM_PROTOCOL* file_system_protocol = nullptr;
 
-    InitializeLib(_image_handle, _system_table);
-
-    Print(L"111111aaa\n");
-    debug_print_line((CHAR16*)L"Debug: Initialising File System service\n");
-    Print(L"1111222211aaa\n");
-
-    status = uefi_call_wrapper((void*)gBS->LocateProtocol, 3,
+    debug((CHAR16*)L"Initialising File System service\n");
+    status = uefi_call_wrapper(gBS->LocateProtocol, 3,
                                &gEfiSimpleFileSystemProtocolGuid, nullptr,
                                (void**)&file_system_protocol);
     if (EFI_ERROR(status)) {
-        debug_print_line((CHAR16*)L"Fatal Error: Error locating Simple File "
-                                  L"System Protocol: %s\n",
-                         get_efi_error_message(status));
+        debug((CHAR16*)L"Fatal Error: Error locating Simple File "
+                       L"System Protocol: %s\n",
+              get_efi_error_message(status));
 
         return status;
     }
 
-    debug_print_line((CHAR16*)L"Debug: Located Simple File System Protocol\n");
-
-    status = uefi_call_wrapper((void*)file_system_protocol->OpenVolume, 2,
+    debug((CHAR16*)L"Located Simple File System Protocol\n");
+    status = uefi_call_wrapper(file_system_protocol->OpenVolume, 2,
                                file_system_protocol, &root_file_system);
     if (check_for_fatal_error(status, (CHAR16*)L"Error opening root volume")) {
         return status;
     }
 
-    debug_print_line(L"Debug: Loading Kernel image\n");
+    debug((CHAR16*)L"Loading Kernel image\n");
     status = load_kernel_image(root_file_system, KERNEL_EXECUTABLE_PATH,
                                kernel_entry_point);
     if (EFI_ERROR(status)) {
@@ -75,8 +63,8 @@ EFI_STATUS EFIAPI efi_main(EFI_HANDLE        _image_handle,
         return status;
     }
 
-    debug_print_line((CHAR16*)L"Debug: Set Kernel Entry Point to: '0x%llx'\n ",
-                     *kernel_entry_point);
+    debug((CHAR16*)L"Set Kernel Entry Point to: '0x%llx'\n ",
+          *kernel_entry_point);
 
     return EFI_SUCCESS;
 }

@@ -17,6 +17,8 @@ enable_language(CXX)
 
 add_executable(${PROJECT_NAME}_boot.elf
         boot.cpp
+        printf_elf_info.cpp
+        read_elf.cpp
         load_elf.cpp
         )
 
@@ -36,6 +38,10 @@ target_link_libraries(${PROJECT_NAME}_boot.elf PRIVATE
         ${gnu-efi_BINARY_DIR}/gnuefi/crt0-efi-${TARGET_ARCH}.o
         ${gnu-efi_BINARY_DIR}/gnuefi/libgnuefi.a
         ${gnu-efi_BINARY_DIR}/lib/libefi.a
+        )
+
+add_dependencies(${PROJECT_NAME}_boot.elf
+        gnu-efi
         )
 
 add_custom_target(${PROJECT_NAME}_boot.efi DEPENDS ${PROJECT_NAME}_boot.elf)
@@ -64,7 +70,7 @@ target_link_options(${PROJECT_NAME}_kernel.elf PRIVATE
         -T ${CMAKE_SOURCE_DIR}/src/kernel/arch/${TARGET_ARCH}/link.ld
         )
 
-add_custom_target(test_gnu_efi DEPENDS ${PROJECT_NAME}_boot.efi ${PROJECT_NAME}_kernel.elf)
+add_custom_target(test_gnu_efi DEPENDS ${PROJECT_NAME}_boot.efi ${PROJECT_NAME}_kernel.elf ovmf)
 add_custom_command(TARGET test_gnu_efi
         COMMENT "Run ${PROJECT_NAME} in qemu."
         COMMAND mkdir -p ./image
