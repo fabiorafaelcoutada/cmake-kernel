@@ -69,11 +69,12 @@ void          print_phdr(const Elf64_Phdr* const _phdr, size_t _phdr_num);
  * @param _elf 要读的 elf 文件句柄
  * @param _shdr_offset shdr 偏移
  * @param _shdr_num shdr 数量
+ * @param _shstrndx e_shstrndx
  * @param _shdr 输出，shdr 数据
  * @return efi 错误码
  */
 EFI_STATUS    read_shdr(const EFI_FILE& _elf, size_t _shdr_offset,
-                        size_t _shdr_num, Elf64_Shdr* _shdr);
+                        size_t _shdr_num, uint64_t _shstrndx, Elf64_Shdr* _shdr);
 
 /**
  * 输出 shdr
@@ -82,26 +83,45 @@ EFI_STATUS    read_shdr(const EFI_FILE& _elf, size_t _shdr_offset,
  */
 void          print_shdr(const Elf64_Shdr* const _shdr, size_t _shdr_num);
 
+/// section 缓冲区大小
+static constexpr const size_t SECTION_BUF_SIZE = 1024;
+/// symtab 缓冲
+extern uint8_t                symtab_buf[SECTION_BUF_SIZE];
+/// strtab 缓冲
+extern uint8_t                strtab_buf[SECTION_BUF_SIZE];
+/// dynsym 缓冲
+extern uint8_t                dynsym_buf[SECTION_BUF_SIZE];
+/// shstrtab 缓冲
+extern uint8_t                shstrtab_buf[SECTION_BUF_SIZE];
+/**
+ * 读取 shdr 指定的 section
+ * @param _elf elf 文件句柄
+ * @param _shdr 要读的 shdr
+ * @param _buffer 输出
+ * @return efi 错误码
+ */
+EFI_STATUS
+read_section(const EFI_FILE& _elf, const Elf64_Shdr _shdr, uint8_t* _buffer);
 /**
  * 读取并检查 elf 标识
  * @param _kernel_img_file elf文件句柄
  * @return efi 错误码
  */
-EFI_STATUS    read_and_check_elf_identity(const EFI_FILE& _kernel_img_file);
+EFI_STATUS read_and_check_elf_identity(const EFI_FILE& _kernel_img_file);
 
 /**
  * 是否为有效的 elf 标识
  * @param _elf_identity_buffer elf 标识缓冲区
  * @return efi 错误码
  */
-EFI_STATUS    validate_elf_identity(const uint8_t* const _elf_identity_buffer);
+EFI_STATUS validate_elf_identity(const uint8_t* const _elf_identity_buffer);
 
 /**
  * 等待输入
  * @param _key 输入的按键
  * @return efi 错误码
  */
-EFI_STATUS    wait_for_input(OUT EFI_INPUT_KEY* _key);
+EFI_STATUS wait_for_input(OUT EFI_INPUT_KEY* _key);
 
 /**
  * 是否为 fatal error
@@ -109,8 +129,8 @@ EFI_STATUS    wait_for_input(OUT EFI_INPUT_KEY* _key);
  * @param _error_message 错误信息
  * @return 是否为 fatal error
  */
-bool          check_for_fatal_error(IN EFI_STATUS const _status,
-                                    IN const CHAR16*    _error_message);
+bool       check_for_fatal_error(IN EFI_STATUS const _status,
+                                 IN const CHAR16*    _error_message);
 
 /**
  * 将 elf 段加载到内存

@@ -18,16 +18,27 @@
 extern "C" {
 #endif
 
+#include "cstring"
+
 #include "load_elf.h"
 
-void print_ehdr(const Elf64_Ehdr& _ehdr) {
-    debug((CHAR16*)L"  Magic:    ");
-    for (uint64_t i = 0; i < EI_NIDENT; i++) {
-        debug((CHAR16*)L"%02x ", _ehdr.e_ident[i]);
+size_t char2wchar(const char* _s, CHAR16* _d) {
+    size_t i = 0;
+    while (_s[i] != '\0') {
+        _d[i] = _s[i];
+        i++;
     }
-    debug((CHAR16*)L"\n");
+    return i;
+}
 
-    debug((CHAR16*)L"  Class:                                ");
+void print_ehdr(const Elf64_Ehdr& _ehdr) {
+    debug(L"  Magic:    ");
+    for (uint64_t i = 0; i < EI_NIDENT; i++) {
+        debug(L"%02x ", _ehdr.e_ident[i]);
+    }
+    debug(L"\n");
+
+    debug(L"  Class:                                ");
     switch (_ehdr.e_ident[EI_CLASS]) {
         case ELFCLASSNONE: {
             debug(L"Invalid class");
@@ -46,9 +57,9 @@ void print_ehdr(const Elf64_Ehdr& _ehdr) {
             break;
         }
     }
-    debug((CHAR16*)L"\n");
+    debug(L"\n");
 
-    debug((CHAR16*)L"  Data:                                 ");
+    debug(L"  Data:                                 ");
     switch (_ehdr.e_ident[EI_DATA]) {
         case ELFDATANONE: {
             debug(L"Invalid data encoding");
@@ -67,9 +78,9 @@ void print_ehdr(const Elf64_Ehdr& _ehdr) {
             break;
         }
     }
-    debug((CHAR16*)L"\n");
+    debug(L"\n");
 
-    debug((CHAR16*)L"  Version:                              %d ",
+    debug(L"  Version:                              %d ",
           _ehdr.e_ident[EI_VERSION]);
     switch (_ehdr.e_ident[EI_VERSION]) {
         case EV_NONE: {
@@ -85,9 +96,9 @@ void print_ehdr(const Elf64_Ehdr& _ehdr) {
             break;
         }
     }
-    debug((CHAR16*)L"\n");
+    debug(L"\n");
 
-    debug((CHAR16*)L"  OS/ABI:                               ");
+    debug(L"  OS/ABI:                               ");
     switch (_ehdr.e_ident[EI_OSABI]) {
         case ELFOSABI_SYSV: {
             debug(L"UNIX System V ABI");
@@ -98,12 +109,12 @@ void print_ehdr(const Elf64_Ehdr& _ehdr) {
             break;
         }
     }
-    debug((CHAR16*)L"\n");
+    debug(L"\n");
 
-    debug((CHAR16*)L"  ABI Version:                          %d\n",
+    debug(L"  ABI Version:                          %d\n",
           _ehdr.e_ident[EI_ABIVERSION]);
 
-    debug((CHAR16*)L"  Type:                                 ");
+    debug(L"  Type:                                 ");
     switch (_ehdr.e_type) {
         case ET_NONE: {
             debug(L"No file type");
@@ -130,9 +141,9 @@ void print_ehdr(const Elf64_Ehdr& _ehdr) {
             break;
         }
     }
-    debug((CHAR16*)L"\n");
+    debug(L"\n");
 
-    debug((CHAR16*)L"  Machine:                              ");
+    debug(L"  Machine:                              ");
     switch (_ehdr.e_machine) {
         case EM_X86_64: {
             debug(L"AMD x86-64 architecture");
@@ -151,46 +162,40 @@ void print_ehdr(const Elf64_Ehdr& _ehdr) {
             break;
         }
     }
-    debug((CHAR16*)L"\n");
+    debug(L"\n");
 
-    debug((CHAR16*)L"  Version:                              0x%x\n",
-          _ehdr.e_version);
+    debug(L"  Version:                              0x%x\n", _ehdr.e_version);
 
-    debug((CHAR16*)L"  Entry point address:                  0x%x\n",
-          _ehdr.e_entry);
+    debug(L"  Entry point address:                  0x%x\n", _ehdr.e_entry);
 
-    debug((CHAR16*)L"  Start of program headers:             %d (bytes into "
-                   L"file)\n",
+    debug(L"  Start of program headers:             %d (bytes into "
+          L"file)\n",
           _ehdr.e_phoff);
 
-    debug((CHAR16*)L"  Start of section headers:             %d (bytes into "
-                   L"file)\n",
+    debug(L"  Start of section headers:             %d (bytes into "
+          L"file)\n",
           _ehdr.e_shoff);
 
-    debug((CHAR16*)L"  Flags:                                0x%x\n",
-          _ehdr.e_flags);
+    debug(L"  Flags:                                0x%x\n", _ehdr.e_flags);
 
-    debug((CHAR16*)L"  Size of this header:                  %d (bytes)\n",
+    debug(L"  Size of this header:                  %d (bytes)\n",
           _ehdr.e_ehsize);
 
-    debug((CHAR16*)L"  Size of program headers:              %d (bytes)\n",
+    debug(L"  Size of program headers:              %d (bytes)\n",
           _ehdr.e_phentsize);
 
-    debug((CHAR16*)L"  Number of program headers:            %d\n",
-          _ehdr.e_phnum);
+    debug(L"  Number of program headers:            %d\n", _ehdr.e_phnum);
 
-    debug((CHAR16*)L"  Size of section headers:              %d (bytes)\n",
+    debug(L"  Size of section headers:              %d (bytes)\n",
           _ehdr.e_shentsize);
 
-    debug((CHAR16*)L"  Number of section headers:            %d\n",
-          _ehdr.e_shnum);
+    debug(L"  Number of section headers:            %d\n", _ehdr.e_shnum);
 
-    debug((CHAR16*)L"  Section header string table index:    %d\n",
-          _ehdr.e_shstrndx);
+    debug(L"  Section header string table index:    %d\n", _ehdr.e_shstrndx);
 }
 
 void print_phdr(const Elf64_Phdr* const _phdr, size_t _phdr_num) {
-    debug((CHAR16*)L"\nProgram Headers:\n");
+    debug(L"\nProgram Headers:\n");
     debug(
       (CHAR16*)L"  "
                L"Type\t\tOffset\t\tVirtAddr\tPhysAddr\tFileSiz\t\tMemSiz\t\t"
@@ -198,293 +203,393 @@ void print_phdr(const Elf64_Phdr* const _phdr, size_t _phdr_num) {
     for (uint64_t i = 0; i < _phdr_num; i++) {
         switch (_phdr[i].p_type) {
             case PT_NULL: {
-                debug((CHAR16*)L"  NULL\t\t");
+                debug(L"  NULL\t\t");
                 break;
             }
 
             case PT_LOAD: {
-                debug((CHAR16*)L"  LOAD\t\t");
+                debug(L"  LOAD\t\t");
                 break;
             }
             case PT_DYNAMIC: {
-                debug((CHAR16*)L"  DYNAMIC\t");
+                debug(L"  DYNAMIC\t");
                 break;
             }
             case PT_INTERP: {
-                debug((CHAR16*)L"  INTERP\t\t");
+                debug(L"  INTERP\t\t");
                 break;
             }
             case PT_NOTE: {
-                debug((CHAR16*)L"  NOTE\t\t");
+                debug(L"  NOTE\t\t");
                 break;
             }
             case PT_SHLIB: {
-                debug((CHAR16*)L"  SHLIB\t\t");
+                debug(L"  SHLIB\t\t");
                 break;
             }
             case PT_PHDR: {
-                debug((CHAR16*)L"  PHDR\t\t");
+                debug(L"  PHDR\t\t");
                 break;
             }
             case PT_TLS: {
-                debug((CHAR16*)L"  TLS\t\t");
+                debug(L"  TLS\t\t");
                 break;
             }
             case PT_NUM: {
-                debug((CHAR16*)L"  NUM\t\t");
+                debug(L"  NUM\t\t");
                 break;
             }
             case PT_LOOS: {
-                debug((CHAR16*)L"  LOOS\t\t");
+                debug(L"  LOOS\t\t");
                 break;
             }
             case PT_GNU_EH_FRAME: {
-                debug((CHAR16*)L"  GNU_EH_FRAME\t");
+                debug(L"  GNU_EH_FRAME\t");
                 break;
             }
             case PT_GNU_STACK: {
-                debug((CHAR16*)L"  GNU_STACK\t");
+                debug(L"  GNU_STACK\t");
                 break;
             }
             case PT_GNU_RELRO: {
-                debug((CHAR16*)L"  GNU_RELRO\t");
+                debug(L"  GNU_RELRO\t");
                 break;
             }
             case PT_GNU_PROPERTY: {
-                debug((CHAR16*)L"  GNU_PROPERTY\t");
+                debug(L"  GNU_PROPERTY\t");
                 break;
             }
             case PT_SUNWBSS: {
-                debug((CHAR16*)L"  SUNWBSS\t\t");
+                debug(L"  SUNWBSS\t\t");
                 break;
             }
             case PT_SUNWSTACK: {
-                debug((CHAR16*)L"  SUNWSTACK\t");
+                debug(L"  SUNWSTACK\t");
                 break;
             }
             case PT_HIOS: {
-                debug((CHAR16*)L"  HIOS\t\t");
+                debug(L"  HIOS\t\t");
                 break;
             }
             case PT_LOPROC: {
-                debug((CHAR16*)L"  LOPROC\t\t");
+                debug(L"  LOPROC\t\t");
                 break;
             }
             case PT_HIPROC: {
-                debug((CHAR16*)L"  HIPROC\t\t");
+                debug(L"  HIPROC\t\t");
                 break;
             }
             default: {
-                debug((CHAR16*)L"  Unknown 0x%X\t", _phdr[i].p_type);
+                debug(L"  Unknown 0x%X\t", _phdr[i].p_type);
                 break;
             }
         }
 
-        debug((CHAR16*)L"0x%X\t", _phdr[i].p_offset);
-        debug((CHAR16*)L"0x%X\t", _phdr[i].p_vaddr);
-        debug((CHAR16*)L"0x%X\t", _phdr[i].p_paddr);
-        debug((CHAR16*)L"0x%X\t", _phdr[i].p_filesz);
-        debug((CHAR16*)L"0x%X\t", _phdr[i].p_memsz);
+        debug(L"0x%X\t", _phdr[i].p_offset);
+        debug(L"0x%X\t", _phdr[i].p_vaddr);
+        debug(L"0x%X\t", _phdr[i].p_paddr);
+        debug(L"0x%X\t", _phdr[i].p_filesz);
+        debug(L"0x%X\t", _phdr[i].p_memsz);
 
         switch (_phdr[i].p_flags) {
             case PF_X: {
-                debug((CHAR16*)L"E\t");
+                debug(L"E\t");
                 break;
             }
             case PF_W: {
-                debug((CHAR16*)L"W\t");
+                debug(L"W\t");
                 break;
             }
             case PF_R: {
-                debug((CHAR16*)L"R\t");
+                debug(L"R\t");
                 break;
             }
             case PF_MASKOS: {
-                debug((CHAR16*)L"OS-specific\t");
+                debug(L"OS-specific\t");
                 break;
             }
             case PF_MASKPROC: {
-                debug((CHAR16*)L"Processor-specific\t");
+                debug(L"Processor-specific\t");
                 break;
             }
             case (PF_X | PF_R): {
-                debug((CHAR16*)L"R E\t");
+                debug(L"R E\t");
                 break;
             }
             case (PF_W | PF_R): {
-                debug((CHAR16*)L"RW\t");
+                debug(L"RW\t");
                 break;
             }
             default: {
-                debug((CHAR16*)L"Unknown 0x%x\t", _phdr[i].p_flags);
+                debug(L"Unknown 0x%x\t", _phdr[i].p_flags);
                 break;
             }
         }
 
-        debug((CHAR16*)L"0x%x\n", _phdr[i].p_align);
+        debug(L"0x%x\n", _phdr[i].p_align);
     }
 }
 
 void print_shdr(const Elf64_Shdr* const _shdr, size_t _shdr_num) {
-    debug((CHAR16*)L"\nSection Headers:\n");
-    debug((CHAR16*)L"  [Nr] "
-                   L"Name\t\tType\t\tAddress\t\tOffset\t\tSize\t\tEntSize\t\tFl"
-                   L"ags\tLink\tInfo\tAlign\n");
+    debug(L"\nSection Headers:\n");
+    debug(L"  [Nr] "
+          L"Name\t\t\tType\t\tAddress\t\tOffset\t\tSize\t\tEntSize\t\tFl"
+          L"ags\tLink\tInfo\tAlign\n");
     for (uint64_t i = 0; i < _shdr_num; i++) {
-        debug((CHAR16*)L"  [%2d] ", i);
-        debug((CHAR16*)L"%d\t\t", _shdr[i].sh_name);
+        debug(L"  [%2d] ", i);
+        CHAR16 buf[SECTION_BUF_SIZE];
+        bzero(buf, SECTION_BUF_SIZE);
+        auto char2wchar_ret
+          = char2wchar((const char*)(shstrtab_buf + _shdr[i].sh_name), buf);
+        debug(L"%s\t", buf);
+        if (char2wchar_ret <= 16) {
+            debug(L"%s", L"\t");
+        }
+        if (char2wchar_ret <= 8) {
+            debug(L"%s", L"\t");
+        }
+        if (char2wchar_ret <= 1) {
+            debug(L"%s", L"\t");
+        }
         switch (_shdr[i].sh_type) {
             case SHT_NULL: {
-                debug((CHAR16*)L"NULL\t\t");
+                debug(L"NULL\t\t");
                 break;
             }
             case SHT_PROGBITS: {
-                debug((CHAR16*)L"PROGBITS\t");
+                debug(L"PROGBITS\t");
                 break;
             }
             case SHT_SYMTAB: {
-                debug((CHAR16*)L"SYMTAB\t\t");
+                debug(L"SYMTAB\t\t");
                 break;
             }
             case SHT_STRTAB: {
-                debug((CHAR16*)L"STRTAB\t\t");
+                debug(L"STRTAB\t\t");
                 break;
             }
             case SHT_RELA: {
-                debug((CHAR16*)L"RELA\t\t");
+                debug(L"RELA\t\t");
                 break;
             }
             case SHT_HASH: {
-                debug((CHAR16*)L"HASH\t\t");
+                debug(L"HASH\t\t");
                 break;
             }
             case SHT_DYNAMIC: {
-                debug((CHAR16*)L"DYNAMIC\t\t");
+                debug(L"DYNAMIC\t\t");
                 break;
             }
             case SHT_NOTE: {
-                debug((CHAR16*)L"NOTE\t\t");
+                debug(L"NOTE\t\t");
                 break;
             }
             case SHT_NOBITS: {
-                debug((CHAR16*)L"NOBITS\t\t");
+                debug(L"NOBITS\t\t");
                 break;
             }
             case SHT_REL: {
-                debug((CHAR16*)L"REL\t\t");
+                debug(L"REL\t\t");
                 break;
             }
             case SHT_SHLIB: {
-                debug((CHAR16*)L"SHLIB\t\t");
+                debug(L"SHLIB\t\t");
                 break;
             }
             case SHT_DYNSYM: {
-                debug((CHAR16*)L"DYNSYM\t\t");
+                debug(L"DYNSYM\t\t");
                 break;
             }
             case SHT_INIT_ARRAY: {
-                debug((CHAR16*)L"INIT_ARRAY\t\t");
+                debug(L"INIT_ARRAY\t\t");
                 break;
             }
             case SHT_FINI_ARRAY: {
-                debug((CHAR16*)L"FINI_ARRAY\t\t");
+                debug(L"FINI_ARRAY\t\t");
                 break;
             }
             case SHT_PREINIT_ARRAY: {
-                debug((CHAR16*)L"PREINIT_ARRAY\t\t");
+                debug(L"PREINIT_ARRAY\t\t");
                 break;
             }
             case SHT_GROUP: {
-                debug((CHAR16*)L"GROUP\t\t");
+                debug(L"GROUP\t\t");
                 break;
             }
             case SHT_SYMTAB_SHNDX: {
-                debug((CHAR16*)L"SYMTAB_SHNDX\t\t");
+                debug(L"SYMTAB_SHNDX\t\t");
                 break;
             }
             case SHT_RELR: {
-                debug((CHAR16*)L"RELR\t\t");
+                debug(L"RELR\t\t");
                 break;
             }
             case SHT_NUM: {
-                debug((CHAR16*)L"NUM\t\t");
+                debug(L"NUM\t\t");
                 break;
             }
             case SHT_LOOS: {
-                debug((CHAR16*)L"LOOS\t\t");
+                debug(L"LOOS\t\t");
                 break;
             }
             case SHT_GNU_ATTRIBUTES: {
-                debug((CHAR16*)L"GNU_ATTRIBUTE\t\t");
+                debug(L"GNU_ATTRIBUTE\t\t");
                 break;
             }
             case SHT_GNU_HASH: {
-                debug((CHAR16*)L"GNU_HASH\t");
+                debug(L"GNU_HASH\t");
                 break;
             }
             case SHT_GNU_LIBLIST: {
-                debug((CHAR16*)L"GNU_LIBLIST\t\t");
+                debug(L"GNU_LIBLIST\t\t");
                 break;
             }
             case SHT_CHECKSUM: {
-                debug((CHAR16*)L"CHECKSUM\t\t");
+                debug(L"CHECKSUM\t\t");
                 break;
             }
             case SHT_SUNW_move: {
-                debug((CHAR16*)L"SUNW_move\t\t");
+                debug(L"SUNW_move\t\t");
                 break;
             }
             case SHT_SUNW_COMDAT: {
-                debug((CHAR16*)L"SUNW_COMDAT\t\t");
+                debug(L"SUNW_COMDAT\t\t");
                 break;
             }
             case SHT_SUNW_syminfo: {
-                debug((CHAR16*)L"SUNW_syminfo\t\t");
+                debug(L"SUNW_syminfo\t\t");
                 break;
             }
             case SHT_GNU_verdef: {
-                debug((CHAR16*)L"GNU_verdef\t\t");
+                debug(L"GNU_verdef\t\t");
                 break;
             }
             case SHT_GNU_verneed: {
-                debug((CHAR16*)L"GNU_verneed\t\t");
+                debug(L"GNU_verneed\t\t");
                 break;
             }
             case SHT_GNU_versym: {
-                debug((CHAR16*)L"GNU_versym\t\t");
+                debug(L"GNU_versym\t\t");
                 break;
             }
             case SHT_LOPROC: {
-                debug((CHAR16*)L"LOPROC\t\t");
+                debug(L"LOPROC\t\t");
                 break;
             }
             case SHT_HIPROC: {
-                debug((CHAR16*)L"HIPROC\t\t");
+                debug(L"HIPROC\t\t");
                 break;
             }
             case SHT_LOUSER: {
-                debug((CHAR16*)L"LOUSER\t\t");
+                debug(L"LOUSER\t\t");
                 break;
             }
             case SHT_HIUSER: {
-                debug((CHAR16*)L"HIUSER\t\t");
+                debug(L"HIUSER\t\t");
                 break;
             }
             default: {
-                debug((CHAR16*)L"Unknown 0x%X\t", _shdr[i].sh_type);
+                debug(L"Unknown 0x%X\t", _shdr[i].sh_type);
                 break;
             }
         }
 
-        debug((CHAR16*)L"0x%X\t", _shdr[i].sh_addr);
-        debug((CHAR16*)L"0x%x\t\t", _shdr[i].sh_offset);
-        debug((CHAR16*)L"0x%X\t", _shdr[i].sh_size);
-        debug((CHAR16*)L"0x%X\t", _shdr[i].sh_entsize);
-        debug((CHAR16*)L"0x%x\t", _shdr[i].sh_flags);
-        debug((CHAR16*)L"%d\t", _shdr[i].sh_link);
-        debug((CHAR16*)L"%d\t", _shdr[i].sh_info);
-        debug((CHAR16*)L"%d\t", _shdr[i].sh_addralign);
-        debug((CHAR16*)L"\n");
+        debug(L"0x%X\t", _shdr[i].sh_addr);
+        debug(L"0x%x\t\t", _shdr[i].sh_offset);
+        debug(L"0x%X\t", _shdr[i].sh_size);
+        debug(L"0x%X\t", _shdr[i].sh_entsize);
+
+        switch (_shdr[i].sh_flags) {
+            case 0: {
+                debug(L"0\t");
+                break;
+            }
+            case SHF_WRITE: {
+                debug(L"WRITE\t");
+                break;
+            }
+            case SHF_ALLOC: {
+                debug(L"A\t");
+                break;
+            }
+            case SHF_EXECINSTR: {
+                debug(L"EXECINSTR\t");
+                break;
+            }
+            case SHF_MERGE: {
+                debug(L"MERGE\t");
+                break;
+            }
+            case SHF_STRINGS: {
+                debug(L"STRINGS\t");
+                break;
+            }
+            case SHF_INFO_LINK: {
+                debug(L"INFO_LINK\t");
+                break;
+            }
+            case SHF_LINK_ORDER: {
+                debug(L"LINK_ORDER\t");
+                break;
+            }
+            case SHF_OS_NONCONFORMING: {
+                debug(L"OS_NONCONFORMING\t");
+                break;
+            }
+            case SHF_GROUP: {
+                debug(L"GROUP\t");
+                break;
+            }
+            case SHF_TLS: {
+                debug(L"TLS\t");
+                break;
+            }
+            case SHF_COMPRESSED: {
+                debug(L"COMPRESSED\t");
+                break;
+            }
+            case SHF_MASKOS: {
+                debug(L"MASKOS\t");
+                break;
+            }
+            case SHF_MASKPROC: {
+                debug(L"MASKPROC\t");
+                break;
+            }
+            case SHF_GNU_RETAIN: {
+                debug(L"GNU_RETAIN\t");
+                break;
+            }
+            case SHF_ORDERED: {
+                debug(L"ORDERED\t");
+                break;
+            }
+            case SHF_EXCLUDE: {
+                debug(L"EXCLUDE\t");
+                break;
+            }
+            case (SHF_WRITE | SHF_ALLOC): {
+                debug(L"WA\t");
+                break;
+            }
+            case (SHF_ALLOC | SHF_EXECINSTR): {
+                debug(L"AX\t");
+                break;
+            }
+            case (SHF_MERGE | SHF_STRINGS): {
+                debug(L"MS\t");
+                break;
+            }
+            default: {
+                debug(L"Unknown 0x%X\t", _shdr[i].sh_flags);
+                break;
+            }
+        }
+
+        debug(L"%d\t", _shdr[i].sh_link);
+        debug(L"%d\t", _shdr[i].sh_info);
+        debug(L"%d\t", _shdr[i].sh_addralign);
+        debug(L"\n");
     }
 }
 
