@@ -14,6 +14,9 @@
  * </table>
  */
 
+#include <cwchar>
+#include <istream>
+#include <string>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -271,6 +274,31 @@ EFI_STATUS load_kernel_image(EFI_FILE* const       _root_file_system,
         return status;
     }
     print_shdr(shdr, ehdr.e_shnum);
+
+    status = uefi_call_wrapper(elf->SetPosition, 2, (EFI_FILE*)elf,
+                               shdr[ehdr.e_shstrndx].sh_offset);
+    if (EFI_ERROR(status)) {
+        debug((CHAR16*)L"Error: Error resetting file pointer position: %s\n",
+              get_efi_error_message(status));
+        return status;
+    }
+    uint64_t buffer_read_size = 256;
+    uint8_t  buf[256];
+    status
+      = uefi_call_wrapper(elf->Read, 3, (EFI_FILE*)elf, &buffer_read_size, buf);
+    if (EFI_ERROR(status)) {
+        debug((CHAR16*)L"Error reading kernel program headers: %s\n",
+              get_efi_error_message(status));
+        return status;
+    }
+
+    for (uint32_t i = 0; i < ehdr.e_shnum; i++) {
+        for (uint64_t j = 0; *(buf + shdr[i].sh_name + j) != '\0'; j++) {
+            CHAR16 a = *(buf + shdr[i].sh_name + j);
+            debug((CHAR16*)L"%c", a);
+        }
+        debug((CHAR16*)L"\n");
+    }
 
     // Set the kernel entry point to the address specified in the ELF
     // header.
