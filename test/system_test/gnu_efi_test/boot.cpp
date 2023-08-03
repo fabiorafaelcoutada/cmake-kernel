@@ -32,7 +32,7 @@ EFI_STATUS EFIAPI efi_main(EFI_HANDLE        _image_handle,
     EFI_STATUS                       status;
 
     EFI_FILE*                        root_file_system     = nullptr;
-    EFI_PHYSICAL_ADDRESS*            kernel_entry_point   = nullptr;
+    uint64_t                         kernel_entry_point   = 0;
     EFI_SIMPLE_FILE_SYSTEM_PROTOCOL* file_system_protocol = nullptr;
 
     debug(L"Initialising File System service\n");
@@ -55,15 +55,17 @@ EFI_STATUS EFIAPI efi_main(EFI_HANDLE        _image_handle,
     }
 
     debug(L"Loading Kernel image\n");
-    status = load_kernel_image(root_file_system, KERNEL_EXECUTABLE_PATH,
+    status = load_kernel_image(*root_file_system, KERNEL_EXECUTABLE_PATH,
                                kernel_entry_point);
     if (EFI_ERROR(status)) {
-        // In the case that loading the kernel image failed, the error
-        // message will have already been printed.
         return status;
     }
 
-    debug(L"Set Kernel Entry Point to: '0x%llx'\n ", *kernel_entry_point);
+    debug(L"Set Kernel Entry Point to: [0x%llX]\n ", kernel_entry_point);
+
+    auto kernel_entry = (void (*)(void))0000000000001040;
+    // Jump to kernel entry.
+    // kernel_entry();
 
     return EFI_SUCCESS;
 }

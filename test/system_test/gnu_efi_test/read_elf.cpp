@@ -112,6 +112,29 @@ EFI_STATUS read_phdr(const EFI_FILE& _elf, size_t _phdr_offset,
     return EFI_SUCCESS;
 }
 
+EFI_STATUS
+read_section(const EFI_FILE& _elf, const Elf64_Shdr _shdr, uint8_t* _buffer) {
+    // 将文件指针设置为 _offset
+    auto status = uefi_call_wrapper(_elf.SetPosition, 2, (EFI_FILE*)&_elf,
+                                    _shdr.sh_offset);
+    if (EFI_ERROR(status)) {
+        debug(L"Error: Error resetting file pointer position: %s\n",
+              get_efi_error_message(status));
+        return status;
+    }
+
+    auto buffer_read_size = _shdr.sh_size;
+
+    status                = uefi_call_wrapper(_elf.Read, 3, (EFI_FILE*)&_elf,
+                                              &buffer_read_size, _buffer);
+    if (EFI_ERROR(status)) {
+        debug(L"Error reading kernel program headers: %s\n",
+              get_efi_error_message(status));
+        return status;
+    }
+    return EFI_SUCCESS;
+}
+
 EFI_STATUS read_shdr(const EFI_FILE& _elf, size_t _shdr_offset,
                      size_t _shdr_num, uint64_t _shstrndx, Elf64_Shdr* _shdr) {
     // 将文件指针设置为 _shdr_offset
@@ -133,6 +156,7 @@ EFI_STATUS read_shdr(const EFI_FILE& _elf, size_t _shdr_offset,
         return status;
     }
 
+    // 读取 section
     for (uint64_t i = 0; i < _shdr_num; i++) {
         switch (_shdr[i].sh_type) {
             case SHT_SYMTAB: {
@@ -160,29 +184,6 @@ EFI_STATUS read_shdr(const EFI_FILE& _elf, size_t _shdr_offset,
         }
     }
 
-    return EFI_SUCCESS;
-}
-
-EFI_STATUS
-read_section(const EFI_FILE& _elf, const Elf64_Shdr _shdr, uint8_t* _buffer) {
-    // 将文件指针设置为 _offset
-    auto status = uefi_call_wrapper(_elf.SetPosition, 2, (EFI_FILE*)&_elf,
-                                    _shdr.sh_offset);
-    if (EFI_ERROR(status)) {
-        debug(L"Error: Error resetting file pointer position: %s\n",
-              get_efi_error_message(status));
-        return status;
-    }
-
-    auto buffer_read_size = _shdr.sh_size;
-
-    status                = uefi_call_wrapper(_elf.Read, 3, (EFI_FILE*)&_elf,
-                                              &buffer_read_size, _buffer);
-    if (EFI_ERROR(status)) {
-        debug(L"Error reading kernel program headers: %s\n",
-              get_efi_error_message(status));
-        return status;
-    }
     return EFI_SUCCESS;
 }
 

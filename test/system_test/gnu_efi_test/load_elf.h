@@ -64,25 +64,6 @@ EFI_STATUS    read_phdr(const EFI_FILE& _elf, size_t _phdr_offset,
  */
 void          print_phdr(const Elf64_Phdr* const _phdr, size_t _phdr_num);
 
-/**
- * 读取 elf 文件的 shdr
- * @param _elf 要读的 elf 文件句柄
- * @param _shdr_offset shdr 偏移
- * @param _shdr_num shdr 数量
- * @param _shstrndx e_shstrndx
- * @param _shdr 输出，shdr 数据
- * @return efi 错误码
- */
-EFI_STATUS    read_shdr(const EFI_FILE& _elf, size_t _shdr_offset,
-                        size_t _shdr_num, uint64_t _shstrndx, Elf64_Shdr* _shdr);
-
-/**
- * 输出 shdr
- * @param _shdr 要输出的 shdr
- * @param _shdr_num shdr 数量
- */
-void          print_shdr(const Elf64_Shdr* const _shdr, size_t _shdr_num);
-
 /// section 缓冲区大小
 static constexpr const size_t SECTION_BUF_SIZE = 1024;
 /// symtab 缓冲
@@ -93,6 +74,7 @@ extern uint8_t                strtab_buf[SECTION_BUF_SIZE];
 extern uint8_t                dynsym_buf[SECTION_BUF_SIZE];
 /// shstrtab 缓冲
 extern uint8_t                shstrtab_buf[SECTION_BUF_SIZE];
+
 /**
  * 读取 shdr 指定的 section
  * @param _elf elf 文件句柄
@@ -102,6 +84,26 @@ extern uint8_t                shstrtab_buf[SECTION_BUF_SIZE];
  */
 EFI_STATUS
 read_section(const EFI_FILE& _elf, const Elf64_Shdr _shdr, uint8_t* _buffer);
+
+/**
+ * 读取 elf 文件的 shdr
+ * @param _elf 要读的 elf 文件句柄
+ * @param _shdr_offset shdr 偏移
+ * @param _shdr_num shdr 数量
+ * @param _shstrndx e_shstrndx
+ * @param _shdr 输出，shdr 数据
+ * @return efi 错误码
+ */
+EFI_STATUS read_shdr(const EFI_FILE& _elf, size_t _shdr_offset,
+                     size_t _shdr_num, uint64_t _shstrndx, Elf64_Shdr* _shdr);
+
+/**
+ * 输出 shdr
+ * @param _shdr 要输出的 shdr
+ * @param _shdr_num shdr 数量
+ */
+void       print_shdr(const Elf64_Shdr* const _shdr, size_t _shdr_num);
+
 /**
  * 读取并检查 elf 标识
  * @param _kernel_img_file elf文件句柄
@@ -134,30 +136,23 @@ bool       check_for_fatal_error(IN EFI_STATUS const _status,
 
 /**
  * 将 elf 段加载到内存
- * @param _kernel_img_file elf 文件句柄
- * @param _segment_file_offset 偏移
- * @param _segment_file_size 长度
- * @param _segment_memory_size 段内存大小
- * @param _segment_physical_address 段物理地址
+ * @param _elf elf 文件句柄
+ * @param _phdr 要加载的程序段 phdr
  * @return efi 错误码
  */
 EFI_STATUS
-load_segment(IN EFI_FILE* const            _kernel_img_file,
-             IN EFI_PHYSICAL_ADDRESS const _segment_file_offset,
-             IN const uint64_t             _segment_file_size,
-             IN const uint64_t             _segment_memory_size,
-             IN EFI_PHYSICAL_ADDRESS const _segment_physical_address);
+load_sections(const EFI_FILE& _elf, const Elf64_Phdr& _phdr);
 
 /**
  * 加载程序段
- * @param _kernel_img_file elf 文件句柄
- * @param _kernel_header_buffer elf 头缓冲区
- * @param _kernel_program_headers_buffer elf 程序头缓冲区
+ * @param _elf elf 文件句柄
+ * @param _ehdr elf ehdr
+ * @param _phdr elf phdr 指针
  * @return efi 错误码
  */
-EFI_STATUS load_program_segments(IN EFI_FILE* const _kernel_img_file,
-                                 IN void* const     _kernel_header_buffer,
-                                 IN void* const _kernel_program_headers_buffer);
+EFI_STATUS
+load_program_sections(const EFI_FILE& _elf, const Elf64_Ehdr& _ehdr,
+                      const Elf64_Phdr* const _phdr);
 
 /**
  * 加载 elf 内核
@@ -166,9 +161,9 @@ EFI_STATUS load_program_segments(IN EFI_FILE* const _kernel_img_file,
  * @param _kernel_entry_point 内核入口点
  * @return efi 错误码
  */
-EFI_STATUS load_kernel_image(IN EFI_FILE* const        _root_file_system,
-                             IN CHAR16* const          _kernel_image_filename,
-                             OUT EFI_PHYSICAL_ADDRESS* _kernel_entry_point);
+EFI_STATUS load_kernel_image(const EFI_FILE&     _root_file_system,
+                             const CHAR16* const _kernel_image_filename,
+                             uint64_t&           _kernel_entry_point);
 
 #ifdef __cplusplus
 }

@@ -64,93 +64,64 @@ bool check_for_fatal_error(IN EFI_STATUS const status,
 }
 
 EFI_STATUS
-load_segment(IN EFI_FILE* const            _kernel_img_file,
-             IN EFI_PHYSICAL_ADDRESS const _segment_file_offset,
-             IN const uint64_t             _segment_file_size,
-             IN const uint64_t             _segment_memory_size,
-             IN EFI_PHYSICAL_ADDRESS const _segment_physical_address) {
-    /** Program status. */
+load_sections(const EFI_FILE& _elf, const Elf64_Phdr& _phdr) {
     EFI_STATUS status;
-    /** Buffer to hold the segment data. */
-    void*      program_data       = nullptr;
-    /** The amount of data to read into the buffer. */
-    uint64_t   buffer_read_size   = 0;
-    /** The number of pages to allocate. */
-    uint64_t   segment_page_count = EFI_SIZE_TO_PAGES(_segment_memory_size);
-    /** The memory location to begin zero filling empty segment space. */
-    EFI_PHYSICAL_ADDRESS zero_fill_start = 0;
-    /** The number of bytes to zero fill. */
-    uint64_t             zero_fill_count = 0;
+    void*      data               = nullptr;
+    // 计算使用的内存页数
+    uint64_t   section_page_count = EFI_SIZE_TO_PAGES(_phdr.p_memsz);
 
-    debug(L"Debug: Setting file pointer to segment "
-          "offset '0x%llx'\n",
-          _segment_file_offset);
-
-    status = uefi_call_wrapper(_kernel_img_file->SetPosition, 2,
-                               _kernel_img_file, _segment_file_offset);
+    // 设置文件偏移到 p_offset
+    status = uefi_call_wrapper(_elf.SetPosition, 2, (EFI_FILE*)&_elf,
+                               _phdr.p_offset);
     if (check_for_fatal_error(
           status, L"Error setting file pointer to segment offset")) {
         return status;
     }
 
-    debug(L"Debug: Allocating %lu pages at address '0x%llx'\n",
-          segment_page_count, _segment_physical_address);
+    // print_phdr(&_phdr, 1);
+    // status = uefi_call_wrapper(gBS->AllocatePages, 4, AllocateAddress,
+    //                            EfiLoaderData, section_page_count,
+    //                            (EFI_PHYSICAL_ADDRESS*)&_phdr.p_paddr);
+    // debug(L"_phdr.p_paddr: [%d]\n", status);
+    // if (check_for_fatal_error(status,
+    //                           L"Error allocating pages for ELF segment")) {
+    //     return status;
+    // }
 
-    status
-      = uefi_call_wrapper(gBS->AllocatePages, 4, AllocateAddress, EfiLoaderData,
-                          segment_page_count,
-                          (EFI_PHYSICAL_ADDRESS*)&_segment_physical_address);
-    if (check_for_fatal_error(status,
-                              L"Error allocating pages for ELF segment")) {
-        return status;
-    }
-
-    if (_segment_file_size > 0) {
-        buffer_read_size = _segment_file_size;
-
-        debug(L"Debug: Allocating segment buffer with size '0x%llx'\n",
-              buffer_read_size);
-
+    if (_phdr.p_filesz > 0) {
+        auto buffer_read_size = _phdr.p_filesz;
+        // 为 program_data 分配内存
         status = uefi_call_wrapper(gBS->AllocatePool, 3, EfiLoaderCode,
-                                   buffer_read_size, (void**)&program_data);
+                                   buffer_read_size, (void**)&data);
         if (check_for_fatal_error(status,
                                   L"Error allocating kernel segment buffer")) {
             return status;
         }
-
-        debug(L"Debug: Reading segment data with file size '0x%llx'\n",
-              buffer_read_size);
-
-        status = uefi_call_wrapper(_kernel_img_file->Read, 3, _kernel_img_file,
-                                   &buffer_read_size, (void*)program_data);
+        // 读数据
+        status = uefi_call_wrapper(_elf.Read, 3, (EFI_FILE*)&_elf,
+                                   &buffer_read_size, (void*)data);
         if (check_for_fatal_error(status, L"Error reading segment data")) {
             return status;
         }
 
-        debug(L"Debug: Copying segment to memory address '0x%llx'\n",
-              _segment_physical_address);
+        // 将读出来的数据复制到其对应的物理地址
+        uefi_call_wrapper(gBS->CopyMem, 3, (void*)_phdr.p_paddr, data,
+                          _phdr.p_filesz);
 
-        uefi_call_wrapper(gBS->CopyMem, 3, (void*)_segment_physical_address,
-                          program_data, _segment_file_size);
-
-        debug(L"Debug: Freeing program section data buffer\n");
-
-        status = uefi_call_wrapper(gBS->FreePool, 1, program_data);
+        // 释放 program_data
+        status = uefi_call_wrapper(gBS->FreePool, 1, data);
         if (check_for_fatal_error(status, L"Error freeing program section")) {
             return status;
         }
     }
 
-    // As per ELF Standard, if the size in memory is larger than the file
-    // size the segment is mandated to be zero filled. For more information
-    // on Refer to ELF standard page 34.
-    zero_fill_start = _segment_physical_address + _segment_file_size;
-    zero_fill_count = _segment_memory_size - _segment_file_size;
-
+    // 计算填充大小
+    EFI_PHYSICAL_ADDRESS zero_fill_start = _phdr.p_paddr + _phdr.p_filesz;
+    uint64_t             zero_fill_count = _phdr.p_memsz - _phdr.p_filesz;
     if (zero_fill_count > 0) {
         debug(L"Debug: Zero-filling %llu bytes at address '0x%llx'\n",
               zero_fill_count, zero_fill_start);
-
+        // 将填充部分置 0
         uefi_call_wrapper(gBS->SetMem, 3, (void*)zero_fill_start,
                           zero_fill_count, 0);
     }
@@ -158,65 +129,40 @@ load_segment(IN EFI_FILE* const            _kernel_img_file,
     return EFI_SUCCESS;
 }
 
-/**
- * load_program_segments
- */
 EFI_STATUS
-load_program_segments(IN EFI_FILE* const _kernel_img_file,
-                      IN void* const     _kernel_header_buffer,
-                      IN void* const     _kernel_program_headers_buffer) {
-    /** Program status. */
+load_program_sections(const EFI_FILE& _elf, const Elf64_Ehdr& _ehdr,
+                      const Elf64_Phdr* const _phdr) {
     EFI_STATUS status;
-    /** The number of program headers. */
-    UINT16     n_program_headers = 0;
-    /** The number of segments loaded. */
-    UINT16     n_segments_loaded = 0;
-    /** Program section iterator. */
-    uint64_t   p                 = 0;
+    uint64_t   loaded = 0;
 
-    n_program_headers = ((Elf64_Ehdr*)_kernel_header_buffer)->e_phnum;
-
-    // Exit if there are no executable sections in the kernel image.
-    if (n_program_headers == 0) {
-        debug(L"Fatal Error: No program segments to load ");
-        debug(L"in Kernel image\n");
-
+    if (_ehdr.e_phnum == 0) {
+        debug(L"Fatal Error: No program segments to load in Kernel image\n");
         return EFI_INVALID_PARAMETER;
     }
 
-    debug(L"Debug: Loading %u segments\n", n_program_headers);
-
-    /** Program headers pointer. */
-    Elf64_Phdr* program_headers = (Elf64_Phdr*)_kernel_program_headers_buffer;
-
-    for (p = 0; p < n_program_headers; p++) {
-        if (program_headers[p].p_type == PT_LOAD) {
-            status = load_segment(_kernel_img_file, program_headers[p].p_offset,
-                                  program_headers[p].p_filesz,
-                                  program_headers[p].p_memsz,
-                                  program_headers[p].p_paddr);
-            if (EFI_ERROR(status)) {
-                return status;
-            }
-
-            n_segments_loaded++;
+    for (uint64_t i = 0; i < _ehdr.e_phnum; i++) {
+        if (_phdr[i].p_type != PT_LOAD) {
+            continue;
         }
+        status = load_sections(_elf, _phdr[i]);
+        if (EFI_ERROR(status)) {
+            return status;
+        }
+        loaded++;
     }
 
-    // If we have found no loadable segments, raise an exception.
-    if (n_segments_loaded == 0) {
-        debug(L"Fatal Error: No loadable program segments ");
-        debug(L"found in Kernel image\n");
-
+    if (loaded == 0) {
+        debug(
+          L"Fatal Error: No loadable program segments found in Kernel image\n");
         return EFI_NOT_FOUND;
     }
 
     return EFI_SUCCESS;
 }
 
-EFI_STATUS load_kernel_image(EFI_FILE* const       _root_file_system,
-                             CHAR16* const         _kernel_image_filename,
-                             EFI_PHYSICAL_ADDRESS* _kernel_entry_point) {
+EFI_STATUS load_kernel_image(const EFI_FILE&     _root_file_system,
+                             const CHAR16* const _kernel_image_filename,
+                             uint64_t&           _kernel_entry_point) {
     EFI_STATUS  status = EFI_SUCCESS;
     EFI_FILE*   elf    = nullptr;
     Elf64_Ehdr  ehdr   = {};
@@ -224,9 +170,10 @@ EFI_STATUS load_kernel_image(EFI_FILE* const       _root_file_system,
     Elf64_Shdr* shdr   = nullptr;
 
     debug(L"Reading kernel image file\n");
-    status = uefi_call_wrapper(_root_file_system->Open, 5, _root_file_system,
-                               &elf, _kernel_image_filename, EFI_FILE_MODE_READ,
-                               EFI_FILE_READ_ONLY);
+    status = uefi_call_wrapper(_root_file_system.Open, 5,
+                               (EFI_FILE*)&_root_file_system, &elf,
+                               (CHAR16*)_kernel_image_filename,
+                               EFI_FILE_MODE_READ, EFI_FILE_READ_ONLY);
     if (check_for_fatal_error(status, L"Error opening kernel file")) {
         return status;
     }
@@ -274,34 +221,30 @@ EFI_STATUS load_kernel_image(EFI_FILE* const       _root_file_system,
     }
     print_shdr(shdr, ehdr.e_shnum);
 
-    // Set the kernel entry point to the address specified in the ELF
-    // header.
-    *_kernel_entry_point = ehdr.e_entry;
+    debug(L"ehdr.e_entry: [0x%llX]\n", ehdr.e_entry);
+    // 设置内核入口地址
+    _kernel_entry_point = ehdr.e_entry;
 
-    status               = load_program_segments(elf, &ehdr, &phdr);
+    status              = load_program_sections(*elf, ehdr, phdr);
     if (EFI_ERROR(status)) {
-        // In the case that loading the kernel segments failed, the error
-        // message will have already been printed.
         return status;
     }
 
     // 关闭文件
     status = uefi_call_wrapper(elf->Close, 1, elf);
-    if (check_for_fatal_error(status, L"Error closing kernel image")) {
+    if (check_for_fatal_error(status, L"Error closing elf")) {
         return status;
     }
 
     // 释放 phdr
-    status = uefi_call_wrapper(gBS->FreePool, 1, (void*)&phdr);
-    if (check_for_fatal_error(status,
-                              L"Error freeing kernel program headers buffer")) {
+    status = uefi_call_wrapper(gBS->FreePool, 1, (void*)phdr);
+    if (check_for_fatal_error(status, L"Error freeing phdr")) {
         return status;
     }
 
     // 释放 shdr
-    status = uefi_call_wrapper(gBS->FreePool, 1, (void*)&shdr);
-    if (check_for_fatal_error(status,
-                              L"Error freeing kernel program headers buffer")) {
+    status = uefi_call_wrapper(gBS->FreePool, 1, (void*)shdr);
+    if (check_for_fatal_error(status, L"Error freeing shdr")) {
         return status;
     }
 
