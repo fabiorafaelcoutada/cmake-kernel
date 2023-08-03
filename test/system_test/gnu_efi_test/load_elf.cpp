@@ -78,6 +78,7 @@ load_sections(const EFI_FILE& _elf, const Elf64_Phdr& _phdr) {
         return status;
     }
 
+    /// @todo 无法映射
     // print_phdr(&_phdr, 1);
     // status = uefi_call_wrapper(gBS->AllocatePages, 4, AllocateAddress,
     //                            EfiLoaderData, section_page_count,

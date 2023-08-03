@@ -61,11 +61,11 @@ EFI_STATUS EFIAPI efi_main(EFI_HANDLE        _image_handle,
         return status;
     }
 
-    debug(L"Set Kernel Entry Point to: [0x%llX]\n ", kernel_entry_point);
-
-    auto kernel_entry = (void (*)(void))0000000000001040;
-    // Jump to kernel entry.
-    // kernel_entry();
+    // debug(L"Set Kernel Entry Point to: [0x%llX]\n ", kernel_entry_point);
+    //
+    // auto kernel_entry = (void (*)(void))0000000000001040;
+    // // Jump to kernel entry.
+    // // kernel_entry();
 
     return EFI_SUCCESS;
 }
