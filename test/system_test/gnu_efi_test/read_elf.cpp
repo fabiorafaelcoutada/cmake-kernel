@@ -14,39 +14,24 @@
  * </table>
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "load_elf.h"
 
-uint8_t    symtab_buf[SECTION_BUF_SIZE]   = { 0 };
-uint8_t    strtab_buf[SECTION_BUF_SIZE]   = { 0 };
-uint8_t    dynsym_buf[SECTION_BUF_SIZE]   = { 0 };
-uint8_t    shstrtab_buf[SECTION_BUF_SIZE] = { 0 };
+uint8_t                       symtab_buf[SECTION_BUF_SIZE]   = { 0 };
+uint8_t                       strtab_buf[SECTION_BUF_SIZE]   = { 0 };
+uint8_t                       dynsym_buf[SECTION_BUF_SIZE]   = { 0 };
+uint8_t                       shstrtab_buf[SECTION_BUF_SIZE] = { 0 };
 
-EFI_STATUS read_and_check_elf_identity(const EFI_FILE& _kernel_img_file) {
-    uint8_t    buffer[EI_NIDENT] = { 0 };
-    uint64_t   buffer_read_size  = EI_NIDENT;
-
-    // 将文件指针设置为 0
-    EFI_STATUS status = uefi_call_wrapper(_kernel_img_file.SetPosition, 2,
-                                          (EFI_FILE*)&_kernel_img_file, 0);
-    if (EFI_ERROR(status)) {
-        debug(L"Error: Error resetting file pointer position: %s\n",
-              get_efi_error_message(status));
-        return status;
+std::pair<EFI_STATUS, size_t> get_file_size(const EFI_FILE& _file) {
+    // 获取 elf 文件大小
+    auto       elf_file_info = LibFileInfo(&_file);
+    auto       file_size     = elf_file_info->FileSize;
+    EFI_STATUS status
+      = uefi_call_wrapper(gBS->FreePool, 1, (void*)elf_file_info);
+    if (check_for_fatal_error(status, L"Error FreePool")) {
+        return std::make_pair(status, 0);
     }
-
-    debug(L"Reading ELF identity\n");
-    status = uefi_call_wrapper(_kernel_img_file.Read, 3,
-                               (EFI_FILE*)&_kernel_img_file, &buffer_read_size,
-                               (void*)buffer);
-    if (EFI_ERROR(status)) {
-        debug(L"Error: Error reading kernel identity: %s\n",
-              get_efi_error_message(status));
-        return status;
-    }
+    return std::make_pair(status, file_size);
+}
 
     if ((buffer[EI_MAG0] != ELFMAG0) || (buffer[EI_MAG1] != ELFMAG1)
         || (buffer[EI_MAG2] != ELFMAG2) || (buffer[EI_MAG3] != ELFMAG3)) {
@@ -186,7 +171,3 @@ EFI_STATUS read_shdr(const EFI_FILE& _elf, size_t _shdr_offset,
 
     return EFI_SUCCESS;
 }
-
-#ifdef __cplusplus
-}
-#endif

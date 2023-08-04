@@ -11,6 +11,10 @@ extern "C" {
 #include "efi.h"
 #include "efilib.h"
 
+#ifdef __cplusplus
+}
+#endif
+
 /**
  * 将 eif 错误码转换为字符串
  * @param _status 错误码
@@ -33,18 +37,25 @@ void          print_elf_file_info(const Elf64_Ehdr* const _header_ptr,
                                   const Elf64_Phdr* const _program_headers_ptr);
 
 /**
+ * 获取文件大小
+ * @param _file 文件句柄
+ * @return <efi 错误码, 文件大小>
+ */
+std::pair<EFI_STATUS, size_t> get_file_size(const EFI_FILE& _file);
+
+/**
  * 读取 elf 文件的 ehdr
  * @param _elf elf 文件句柄
  * @param _ehdr 输出，ehdr
  * @return efi 错误码
  */
-EFI_STATUS    read_ehdr(const EFI_FILE& _elf, Elf64_Ehdr& _ehdr);
+EFI_STATUS read_ehdr(const EFI_FILE& _elf, Elf64_Ehdr& _ehdr);
 
 /**
  * 输出 elf ehdr
  * @param _ehdr 要输出的 ehdr
  */
-void          print_ehdr(const Elf64_Ehdr& _ehdr);
+void       print_ehdr(const Elf64_Ehdr& _ehdr);
 
 /**
  * 读取 elf 文件的 phdr
@@ -54,15 +65,15 @@ void          print_ehdr(const Elf64_Ehdr& _ehdr);
  * @param _phdr 输出，phdr 数据
  * @return efi 错误码
  */
-EFI_STATUS    read_phdr(const EFI_FILE& _elf, size_t _phdr_offset,
-                        size_t _phdr_num, Elf64_Phdr* _phdr);
+EFI_STATUS read_phdr(const EFI_FILE& _elf, size_t _phdr_offset,
+                     size_t _phdr_num, Elf64_Phdr* _phdr);
 
 /**
  * 输出 phdr
  * @param _phdr 要输出的 phdr
  * @param _phdr_num phdr 数量
  */
-void          print_phdr(const Elf64_Phdr* const _phdr, size_t _phdr_num);
+void print_phdr(const Elf64_Phdr* const _phdr, size_t _phdr_num);
 
 /// section 缓冲区大小
 static constexpr const size_t SECTION_BUF_SIZE = 1024;
@@ -164,9 +175,5 @@ load_program_sections(const EFI_FILE& _elf, const Elf64_Ehdr& _ehdr,
 EFI_STATUS load_kernel_image(const EFI_FILE&     _root_file_system,
                              const CHAR16* const _kernel_image_filename,
                              uint64_t&           _kernel_entry_point);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CMAKE_KERNEL_LOAD_ELF_H */

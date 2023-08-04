@@ -14,10 +14,6 @@
  * </table>
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "cstring"
 
 #include "load_elf.h"
@@ -592,7 +588,3 @@ void print_shdr(const Elf64_Shdr* const _shdr, size_t _shdr_num) {
         debug(L"\n");
     }
 }
-
-#ifdef __cplusplus
-}
-#endif

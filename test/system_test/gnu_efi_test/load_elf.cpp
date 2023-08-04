@@ -14,54 +14,9 @@
  * </table>
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "cstring"
 
 #include "load_elf.h"
-
-CHAR16        error_message_buffer[256];
-
-const CHAR16* get_efi_error_message(EFI_STATUS _status) {
-    StatusToString(error_message_buffer, _status);
-    return error_message_buffer;
-}
-
-void debug(const CHAR16* _fmt, ...) {
-    va_list args;
-    va_start(args, _fmt);
-    VPrint(_fmt, args);
-    va_end(args);
-}
-
-EFI_STATUS wait_for_input(EFI_INPUT_KEY* _key) {
-    EFI_STATUS status;
-    do {
-        status
-          = uefi_call_wrapper(ST->ConIn->ReadKeyStroke, 2, ST->ConIn, _key);
-    } while (status == EFI_NOT_READY);
-
-    return status;
-}
-
-bool check_for_fatal_error(IN EFI_STATUS const status,
-                           IN const CHAR16*    error_message) {
-    if (EFI_ERROR(status)) {
-        /** Input key type used to capture user input. */
-        EFI_INPUT_KEY input_key;
-
-        debug(L"Fatal Error: %s: %s\n", error_message,
-              get_efi_error_message(status));
-
-        debug(L"Press any key to reboot...");
-        wait_for_input(&input_key);
-        return TRUE;
-    }
-
-    return FALSE;
-}
 
 EFI_STATUS
 load_sections(const EFI_FILE& _elf, const Elf64_Phdr& _phdr) {
@@ -164,11 +119,12 @@ load_program_sections(const EFI_FILE& _elf, const Elf64_Ehdr& _ehdr,
 EFI_STATUS load_kernel_image(const EFI_FILE&     _root_file_system,
                              const CHAR16* const _kernel_image_filename,
                              uint64_t&           _kernel_entry_point) {
-    EFI_STATUS  status = EFI_SUCCESS;
-    EFI_FILE*   elf    = nullptr;
-    Elf64_Ehdr  ehdr   = {};
-    Elf64_Phdr* phdr   = nullptr;
-    Elf64_Shdr* shdr   = nullptr;
+    EFI_STATUS  status      = EFI_SUCCESS;
+    EFI_FILE*   elf         = nullptr;
+    uint8_t*    file_buffer = nullptr;
+    Elf64_Ehdr  ehdr        = {};
+    Elf64_Phdr* phdr        = nullptr;
+    Elf64_Shdr* shdr        = nullptr;
 
     debug(L"Reading kernel image file\n");
     status = uefi_call_wrapper(_root_file_system.Open, 5,
@@ -251,7 +207,3 @@ EFI_STATUS load_kernel_image(const EFI_FILE&     _root_file_system,
 
     return status;
 }
-
-#ifdef __cplusplus
-}
-#endif

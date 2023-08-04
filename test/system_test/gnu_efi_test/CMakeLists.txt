@@ -20,6 +20,7 @@ add_executable(${PROJECT_NAME}_boot.elf
         printf_elf_info.cpp
         read_elf.cpp
         load_elf.cpp
+        err.cpp
         )
 
 add_header_3rd(${PROJECT_NAME}_boot.elf)
@@ -27,6 +28,7 @@ add_header_3rd(${PROJECT_NAME}_boot.elf)
 target_compile_options(${PROJECT_NAME}_boot.elf PRIVATE
         -fpermissive -fshort-wchar -Wall -Wextra
         -DGNU_EFI_USE_MS_ABI
+        #        -lgcc -lg++
         )
 
 target_link_options(${PROJECT_NAME}_boot.elf PRIVATE
@@ -66,8 +68,8 @@ target_compile_options(${PROJECT_NAME}_kernel.elf PRIVATE
         )
 
 target_link_options(${PROJECT_NAME}_kernel.elf PRIVATE
-        -nostdlib -shared -Wl,-Bsymbolic
-        -T ${CMAKE_SOURCE_DIR}/src/kernel/arch/${TARGET_ARCH}/link.ld
+        -ffreestanding
+        #        -T ${CMAKE_SOURCE_DIR}/src/kernel/arch/${TARGET_ARCH}/link.ld
         )
 
 add_custom_target(test_gnu_efi DEPENDS ${PROJECT_NAME}_boot.efi ${PROJECT_NAME}_kernel.elf ovmf)

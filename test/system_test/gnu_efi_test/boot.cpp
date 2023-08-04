@@ -14,21 +14,12 @@
  * </table>
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include "elf.h"
-
 #include "load_elf.h"
-
-#include "efi.h"
-#include "efilib.h"
 
 #define KERNEL_EXECUTABLE_PATH (CHAR16*)L"gnu-efi-test_kernel.elf"
 
-EFI_STATUS EFIAPI efi_main(EFI_HANDLE        _image_handle,
-                           EFI_SYSTEM_TABLE* _system_table) {
+extern "C" EFI_STATUS EFIAPI efi_main(EFI_HANDLE        _image_handle,
+                                      EFI_SYSTEM_TABLE* _system_table) {
     EFI_STATUS                       status;
 
     EFI_FILE*                        root_file_system     = nullptr;
@@ -69,7 +60,3 @@ EFI_STATUS EFIAPI efi_main(EFI_HANDLE        _image_handle,
 
     return EFI_SUCCESS;
 }
-
-#ifdef __cplusplus
-}
-#endif
