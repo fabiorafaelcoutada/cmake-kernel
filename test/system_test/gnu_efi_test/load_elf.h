@@ -2,11 +2,12 @@
 #ifndef CMAKE_KERNEL_LOAD_ELF_H
 #define CMAKE_KERNEL_LOAD_ELF_H
 
+#include "elf.h"
+#include "utility"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "elf.h"
 
 #include "efi.h"
 #include "efilib.h"
@@ -45,28 +46,26 @@ std::pair<EFI_STATUS, size_t> get_file_size(const EFI_FILE& _file);
 
 /**
  * 读取 elf 文件的 ehdr
- * @param _elf elf 文件句柄
+ * @param _elf_file_buffer elf 文件缓冲
  * @param _ehdr 输出，ehdr
  * @return efi 错误码
  */
-EFI_STATUS read_ehdr(const EFI_FILE& _elf, Elf64_Ehdr& _ehdr);
+const Elf64_Ehdr&             get_ehdr(const uint8_t* const _elf_file_buffer);
 
 /**
  * 输出 elf ehdr
  * @param _ehdr 要输出的 ehdr
  */
-void       print_ehdr(const Elf64_Ehdr& _ehdr);
+void                          print_ehdr(const Elf64_Ehdr& _ehdr);
 
 /**
  * 读取 elf 文件的 phdr
- * @param _elf 要读的 elf 文件句柄
- * @param _phdr_offset phdr 偏移
- * @param _phdr_num phdr 数量
- * @param _phdr 输出，phdr 数据
- * @return efi 错误码
+ * @param _offset phdr 在 elf 文件中的偏移 e_phoff
+ * @param _elf_file_buffer elf 文件缓冲
+ * @return Elf64_Phdr 指针，长度为 e_phnum
  */
-EFI_STATUS read_phdr(const EFI_FILE& _elf, size_t _phdr_offset,
-                     size_t _phdr_num, Elf64_Phdr* _phdr);
+const Elf64_Phdr* const
+     get_phdr(uint64_t _offset, const uint8_t* const _elf_file_buffer);
 
 /**
  * 输出 phdr
@@ -77,36 +76,26 @@ void print_phdr(const Elf64_Phdr* const _phdr, size_t _phdr_num);
 
 /// section 缓冲区大小
 static constexpr const size_t SECTION_BUF_SIZE = 1024;
-/// symtab 缓冲
-extern uint8_t                symtab_buf[SECTION_BUF_SIZE];
-/// strtab 缓冲
-extern uint8_t                strtab_buf[SECTION_BUF_SIZE];
-/// dynsym 缓冲
-extern uint8_t                dynsym_buf[SECTION_BUF_SIZE];
 /// shstrtab 缓冲
 extern uint8_t                shstrtab_buf[SECTION_BUF_SIZE];
 
 /**
  * 读取 shdr 指定的 section
- * @param _elf elf 文件句柄
+ * @param _elf_file_buffer elf 文件缓冲
  * @param _shdr 要读的 shdr
  * @param _buffer 输出
- * @return efi 错误码
  */
-EFI_STATUS
-read_section(const EFI_FILE& _elf, const Elf64_Shdr _shdr, uint8_t* _buffer);
+void read_section(const uint8_t* const _elf_file_buffer,
+                  const Elf64_Shdr& _shdr, uint8_t* const _buffer);
 
 /**
  * 读取 elf 文件的 shdr
- * @param _elf 要读的 elf 文件句柄
- * @param _shdr_offset shdr 偏移
- * @param _shdr_num shdr 数量
- * @param _shstrndx e_shstrndx
- * @param _shdr 输出，shdr 数据
- * @return efi 错误码
+ * @param _offset shdr 在 elf 文件中的偏移 e_shoff
+ * @param _elf_file_buffer elf 文件缓冲
+ * @return Elf64_Shdr 指针，长度为 e_shnum
  */
-EFI_STATUS read_shdr(const EFI_FILE& _elf, size_t _shdr_offset,
-                     size_t _shdr_num, uint64_t _shstrndx, Elf64_Shdr* _shdr);
+const Elf64_Shdr* const
+           get_shdr(uint64_t _offset, const uint8_t* const _elf_file_buffer);
 
 /**
  * 输出 shdr
@@ -116,18 +105,11 @@ EFI_STATUS read_shdr(const EFI_FILE& _elf, size_t _shdr_offset,
 void       print_shdr(const Elf64_Shdr* const _shdr, size_t _shdr_num);
 
 /**
- * 读取并检查 elf 标识
- * @param _kernel_img_file elf文件句柄
- * @return efi 错误码
+ * 检查 elf 标识
+ * @param _elf_file_buffer elf 文件数据
+ * @return 失败返回 false
  */
-EFI_STATUS read_and_check_elf_identity(const EFI_FILE& _kernel_img_file);
-
-/**
- * 是否为有效的 elf 标识
- * @param _elf_identity_buffer elf 标识缓冲区
- * @return efi 错误码
- */
-EFI_STATUS validate_elf_identity(const uint8_t* const _elf_identity_buffer);
+EFI_STATUS check_elf_identity(const uint8_t* const _elf_file_buffer);
 
 /**
  * 等待输入

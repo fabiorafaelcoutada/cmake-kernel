@@ -212,7 +212,7 @@ void print_phdr(const Elf64_Phdr* const _phdr, size_t _phdr_num) {
                 break;
             }
             case PT_INTERP: {
-                debug(L"  INTERP\t\t");
+                debug(L"  INTERP\t");
                 break;
             }
             case PT_NOTE: {
@@ -397,11 +397,11 @@ void print_shdr(const Elf64_Shdr* const _shdr, size_t _shdr_num) {
                 break;
             }
             case SHT_INIT_ARRAY: {
-                debug(L"INIT_ARRAY\t\t");
+                debug(L"INIT_ARRAY\t");
                 break;
             }
             case SHT_FINI_ARRAY: {
-                debug(L"FINI_ARRAY\t\t");
+                debug(L"FINI_ARRAY\t");
                 break;
             }
             case SHT_PREINIT_ARRAY: {
@@ -461,11 +461,11 @@ void print_shdr(const Elf64_Shdr* const _shdr, size_t _shdr_num) {
                 break;
             }
             case SHT_GNU_verneed: {
-                debug(L"GNU_verneed\t\t");
+                debug(L"GNU_verneed\t");
                 break;
             }
             case SHT_GNU_versym: {
-                debug(L"GNU_versym\t\t");
+                debug(L"GNU_versym\t");
                 break;
             }
             case SHT_LOPROC: {

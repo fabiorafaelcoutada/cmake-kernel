@@ -14,11 +14,9 @@
  * </table>
  */
 
+#include "cstring"
 #include "load_elf.h"
 
-uint8_t                       symtab_buf[SECTION_BUF_SIZE]   = { 0 };
-uint8_t                       strtab_buf[SECTION_BUF_SIZE]   = { 0 };
-uint8_t                       dynsym_buf[SECTION_BUF_SIZE]   = { 0 };
 uint8_t                       shstrtab_buf[SECTION_BUF_SIZE] = { 0 };
 
 std::pair<EFI_STATUS, size_t> get_file_size(const EFI_FILE& _file) {
@@ -33,17 +31,20 @@ std::pair<EFI_STATUS, size_t> get_file_size(const EFI_FILE& _file) {
     return std::make_pair(status, file_size);
 }
 
-    if ((buffer[EI_MAG0] != ELFMAG0) || (buffer[EI_MAG1] != ELFMAG1)
-        || (buffer[EI_MAG2] != ELFMAG2) || (buffer[EI_MAG3] != ELFMAG3)) {
+EFI_STATUS check_elf_identity(const uint8_t* const _elf_file_buffer) {
+    if ((_elf_file_buffer[EI_MAG0] != ELFMAG0)
+        || (_elf_file_buffer[EI_MAG1] != ELFMAG1)
+        || (_elf_file_buffer[EI_MAG2] != ELFMAG2)
+        || (_elf_file_buffer[EI_MAG3] != ELFMAG3)) {
         debug(L"Fatal Error: Invalid ELF header\n");
         return EFI_INVALID_PARAMETER;
     }
 
-    if (buffer[EI_CLASS] == ELFCLASS32) {
+    if (_elf_file_buffer[EI_CLASS] == ELFCLASS32) {
         debug(L"Found 32bit executable but NOT SUPPORT\n");
         return EFI_UNSUPPORTED;
     }
-    else if (buffer[EI_CLASS] == ELFCLASS64) {
+    else if (_elf_file_buffer[EI_CLASS] == ELFCLASS64) {
         debug(L"Found 64bit executable\n");
     }
     else {
@@ -54,120 +55,24 @@ std::pair<EFI_STATUS, size_t> get_file_size(const EFI_FILE& _file) {
     return EFI_SUCCESS;
 }
 
-EFI_STATUS read_ehdr(const EFI_FILE& _elf, Elf64_Ehdr& _ehdr) {
-    // 将文件指针设置为 0
-    auto status = uefi_call_wrapper(_elf.SetPosition, 2, (EFI_FILE*)&_elf, 0);
-    if (EFI_ERROR(status)) {
-        debug(L"Error: Error resetting file pointer position: %s\n",
-              get_efi_error_message(status));
-        return status;
-    }
-    auto buffer_read_size = sizeof(Elf64_Ehdr);
-    status                = uefi_call_wrapper(_elf.Read, 3, (EFI_FILE*)&_elf,
-                                              &buffer_read_size, &_ehdr);
-    if (EFI_ERROR(status)) {
-        debug(L"Error: Error reading kernel header: %s\n",
-              get_efi_error_message(status));
-        return status;
-    }
-    return EFI_SUCCESS;
+const Elf64_Ehdr& get_ehdr(const uint8_t* const _elf_file_buffer) {
+    return *reinterpret_cast<const Elf64_Ehdr*>(_elf_file_buffer);
 }
 
-EFI_STATUS read_phdr(const EFI_FILE& _elf, size_t _phdr_offset,
-                     size_t _phdr_num, Elf64_Phdr* _phdr) {
-    // 将文件指针设置为 _phdr_offset
-    auto status
-      = uefi_call_wrapper(_elf.SetPosition, 2, (EFI_FILE*)&_elf, _phdr_offset);
-    if (EFI_ERROR(status)) {
-        debug(L"Error: Error resetting file pointer position: %s\n",
-              get_efi_error_message(status));
-        return status;
-    }
-
-    auto buffer_read_size = sizeof(Elf64_Phdr) * _phdr_num;
-
-    status                = uefi_call_wrapper(_elf.Read, 3, (EFI_FILE*)&_elf,
-                                              &buffer_read_size, _phdr);
-    if (EFI_ERROR(status)) {
-        debug(L"Error reading kernel program headers: %s\n",
-              get_efi_error_message(status));
-        return status;
-    }
-
-    return EFI_SUCCESS;
+const Elf64_Phdr* const
+get_phdr(uint64_t _offset, const uint8_t* const _elf_file_buffer) {
+    return reinterpret_cast<const Elf64_Phdr* const>(_elf_file_buffer
+                                                     + _offset);
 }
 
-EFI_STATUS
-read_section(const EFI_FILE& _elf, const Elf64_Shdr _shdr, uint8_t* _buffer) {
-    // 将文件指针设置为 _offset
-    auto status = uefi_call_wrapper(_elf.SetPosition, 2, (EFI_FILE*)&_elf,
-                                    _shdr.sh_offset);
-    if (EFI_ERROR(status)) {
-        debug(L"Error: Error resetting file pointer position: %s\n",
-              get_efi_error_message(status));
-        return status;
-    }
-
-    auto buffer_read_size = _shdr.sh_size;
-
-    status                = uefi_call_wrapper(_elf.Read, 3, (EFI_FILE*)&_elf,
-                                              &buffer_read_size, _buffer);
-    if (EFI_ERROR(status)) {
-        debug(L"Error reading kernel program headers: %s\n",
-              get_efi_error_message(status));
-        return status;
-    }
-    return EFI_SUCCESS;
+void read_section(const uint8_t* const _elf_file_buffer,
+                  const Elf64_Shdr& _shdr, uint8_t* _buffer) {
+    memcpy(_buffer, _elf_file_buffer + _shdr.sh_offset, _shdr.sh_size);
+    return;
 }
 
-EFI_STATUS read_shdr(const EFI_FILE& _elf, size_t _shdr_offset,
-                     size_t _shdr_num, uint64_t _shstrndx, Elf64_Shdr* _shdr) {
-    // 将文件指针设置为 _shdr_offset
-    auto status
-      = uefi_call_wrapper(_elf.SetPosition, 2, (EFI_FILE*)&_elf, _shdr_offset);
-    if (EFI_ERROR(status)) {
-        debug(L"Error: Error resetting file pointer position: %s\n",
-              get_efi_error_message(status));
-        return status;
-    }
-
-    auto buffer_read_size = sizeof(Elf64_Shdr) * _shdr_num;
-
-    status                = uefi_call_wrapper(_elf.Read, 3, (EFI_FILE*)&_elf,
-                                              &buffer_read_size, _shdr);
-    if (EFI_ERROR(status)) {
-        debug(L"Error reading kernel program headers: %s\n",
-              get_efi_error_message(status));
-        return status;
-    }
-
-    // 读取 section
-    for (uint64_t i = 0; i < _shdr_num; i++) {
-        switch (_shdr[i].sh_type) {
-            case SHT_SYMTAB: {
-                read_section(_elf, _shdr[i], symtab_buf);
-                break;
-            }
-            case SHT_STRTAB: {
-                read_section(_elf, _shdr[i], strtab_buf);
-                if (i == _shstrndx) {
-                    read_section(_elf, _shdr[i], shstrtab_buf);
-                }
-                break;
-            }
-            case SHT_DYNAMIC: {
-                read_section(_elf, _shdr[i], dynsym_buf);
-                break;
-            }
-            case SHT_DYNSYM: {
-                read_section(_elf, _shdr[i], shstrtab_buf);
-                break;
-            }
-            default: {
-                break;
-            }
-        }
-    }
-
-    return EFI_SUCCESS;
+const Elf64_Shdr* const
+get_shdr(uint64_t _offset, const uint8_t* const _elf_file_buffer) {
+    return reinterpret_cast<const Elf64_Shdr* const>(_elf_file_buffer
+                                                     + _offset);
 }

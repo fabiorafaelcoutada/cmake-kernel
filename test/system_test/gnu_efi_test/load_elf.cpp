@@ -34,15 +34,16 @@ load_sections(const EFI_FILE& _elf, const Elf64_Phdr& _phdr) {
     }
 
     /// @todo 无法映射
+    uint64_t addr233 = 0;
     // print_phdr(&_phdr, 1);
-    // status = uefi_call_wrapper(gBS->AllocatePages, 4, AllocateAddress,
-    //                            EfiLoaderData, section_page_count,
-    //                            (EFI_PHYSICAL_ADDRESS*)&_phdr.p_paddr);
-    // debug(L"_phdr.p_paddr: [%d]\n", status);
-    // if (check_for_fatal_error(status,
-    //                           L"Error allocating pages for ELF segment")) {
-    //     return status;
-    // }
+    status
+      = uefi_call_wrapper(gBS->AllocatePages, 4, AllocateAddress, EfiLoaderData,
+                          section_page_count, (EFI_PHYSICAL_ADDRESS*)&addr233);
+    debug(L"_phdr.p_paddr: [%d] [%d]\n", status, section_page_count);
+    if (check_for_fatal_error(status,
+                              L"Error allocating pages for ELF segment")) {
+        return status;
+    }
 
     if (_phdr.p_filesz > 0) {
         auto buffer_read_size = _phdr.p_filesz;
@@ -119,12 +120,9 @@ load_program_sections(const EFI_FILE& _elf, const Elf64_Ehdr& _ehdr,
 EFI_STATUS load_kernel_image(const EFI_FILE&     _root_file_system,
                              const CHAR16* const _kernel_image_filename,
                              uint64_t&           _kernel_entry_point) {
-    EFI_STATUS  status      = EFI_SUCCESS;
-    EFI_FILE*   elf         = nullptr;
-    uint8_t*    file_buffer = nullptr;
-    Elf64_Ehdr  ehdr        = {};
-    Elf64_Phdr* phdr        = nullptr;
-    Elf64_Shdr* shdr        = nullptr;
+    EFI_STATUS status      = EFI_SUCCESS;
+    EFI_FILE*  elf         = nullptr;
+    uint8_t*   file_buffer = nullptr;
 
     debug(L"Reading kernel image file\n");
     status = uefi_call_wrapper(_root_file_system.Open, 5,
@@ -135,47 +133,46 @@ EFI_STATUS load_kernel_image(const EFI_FILE&     _root_file_system,
         return status;
     }
 
-    // 读取并检查 elf 头数据
-    status = read_and_check_elf_identity(*elf);
-    if (check_for_fatal_error(status, L"Error reading executable identity")) {
+    // 获取内核文件大小
+    auto get_file_size_ret = get_file_size(*elf);
+    if (check_for_fatal_error(get_file_size_ret.first,
+                              L"Error get_file_size")) {
+        return get_file_size_ret.first;
+    }
+    debug(L"Kernel file size: %llu\n", get_file_size_ret.second);
+
+    // 分配内存
+    status = uefi_call_wrapper(gBS->AllocatePool, 3, EfiLoaderData,
+                               get_file_size_ret.second, (void**)&file_buffer);
+    if (check_for_fatal_error(status, L"Error allocating kernel buffer")) {
+        return status;
+    }
+    // 将内核文件读入内存
+    auto kernel_file_size = get_file_size_ret.second;
+    status = uefi_call_wrapper(elf->Read, 3, (EFI_FILE*)elf, &kernel_file_size,
+                               file_buffer);
+    if (EFI_ERROR(status)) {
+        debug(L"Error reading kernel %s\n", get_efi_error_message(status));
+        return status;
+    }
+
+    // 检查 elf 头数据
+    status = check_elf_identity(file_buffer);
+    if (EFI_ERROR(status)) {
+        debug(L"NOT valid ELF file %s\n", get_efi_error_message(status));
         return status;
     }
 
     // 读取 ehdr
-    status = read_ehdr(*elf, ehdr);
-    if (check_for_fatal_error(status, L"Error reading Ehdr")) {
-        return status;
-    }
+    auto ehdr = get_ehdr(file_buffer);
     print_ehdr(ehdr);
-
-    // 为 phdr 分配内存
-    auto phdr_buffer_size = sizeof(Elf64_Phdr) * ehdr.e_phnum;
-    status = uefi_call_wrapper(gBS->AllocatePool, 3, EfiLoaderCode,
-                               phdr_buffer_size, (void**)&phdr);
-    if (check_for_fatal_error(status,
-                              L"Error allocating kernel segment buffer")) {
-        return status;
-    }
     // 读取 phdr
-    status = read_phdr(*elf, ehdr.e_phoff, ehdr.e_phnum, phdr);
-    if (check_for_fatal_error(status, L"Error reading Phdr")) {
-        return status;
-    }
+    auto phdr = get_phdr(ehdr.e_phoff, file_buffer);
     print_phdr(phdr, ehdr.e_phnum);
-
-    // 为 shdr 分配内存
-    auto shdr_buffer_size = sizeof(Elf64_Shdr) * ehdr.e_shnum;
-    status = uefi_call_wrapper(gBS->AllocatePool, 3, EfiLoaderCode,
-                               shdr_buffer_size, (void**)&shdr);
-    if (check_for_fatal_error(status,
-                              L"Error allocating kernel segment buffer")) {
-        return status;
-    }
     // 读取 shdr
-    status = read_shdr(*elf, ehdr.e_shoff, ehdr.e_shnum, ehdr.e_shstrndx, shdr);
-    if (check_for_fatal_error(status, L"Error reading Phdr")) {
-        return status;
-    }
+    auto shdr = get_shdr(ehdr.e_shoff, file_buffer);
+    // 将 shstrtab 读入 shstrtab_buf
+    read_section(file_buffer, shdr[ehdr.e_shstrndx], shstrtab_buf);
     print_shdr(shdr, ehdr.e_shnum);
 
     debug(L"ehdr.e_entry: [0x%llX]\n", ehdr.e_entry);
