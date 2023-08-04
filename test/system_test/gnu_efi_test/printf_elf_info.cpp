@@ -568,6 +568,10 @@ void print_shdr(const Elf64_Shdr* const _shdr, size_t _shdr_num) {
                 debug(L"WA\t");
                 break;
             }
+            case (SHF_ALLOC | SHF_MERGE): {
+                debug(L"AM\t");
+                break;
+            }
             case (SHF_ALLOC | SHF_EXECINSTR): {
                 debug(L"AX\t");
                 break;
