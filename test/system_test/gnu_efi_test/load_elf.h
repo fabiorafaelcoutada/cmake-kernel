@@ -193,4 +193,35 @@ public:
     void print_info(void) const;
 };
 
+class Memory {
+private:
+    /// 内存映射信息
+    uint64_t               mem_map_size = 0;
+    EFI_MEMORY_DESCRIPTOR* memory_map   = nullptr;
+    uint64_t               map_key      = 0;
+    uint64_t               desc_size    = 0;
+    uint32_t               desc_version = 0;
+
+    /**
+     * 更新内存映射信息
+     */
+    void                   flush_desc(void);
+
+public:
+    /**
+     * 构造函数
+     */
+    Memory(void);
+
+    /**
+     * 析构函数
+     */
+    ~Memory(void);
+
+    /**
+     * 输出内存映射信息
+     */
+    void print_info(void);
+};
+
 #endif /* CMAKE_KERNEL_LOAD_ELF_H */

@@ -21,6 +21,8 @@ add_executable(${PROJECT_NAME}_boot.elf
         read_elf.cpp
         load_elf.cpp
         err.cpp
+        graphics.cpp
+        memory.cpp
         )
 
 add_header_3rd(${PROJECT_NAME}_boot.elf)
@@ -29,6 +31,7 @@ target_compile_options(${PROJECT_NAME}_boot.elf PRIVATE
         -fpermissive -fshort-wchar -Wall -Wextra
         -DGNU_EFI_USE_MS_ABI
         #        -lgcc -lg++
+        -fPIC
         )
 
 target_link_options(${PROJECT_NAME}_boot.elf PRIVATE

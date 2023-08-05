@@ -14,14 +14,15 @@
  * </table>
  */
 
-#include "cstring"
+#include <cstring>
+
 #include "load_elf.h"
 
 uint8_t                       shstrtab_buf[SECTION_BUF_SIZE] = { 0 };
 
 std::pair<EFI_STATUS, size_t> get_file_size(const EFI_FILE& _file) {
     // 获取 elf 文件大小
-    auto       elf_file_info = LibFileInfo(&_file);
+    auto       elf_file_info = LibFileInfo((EFI_FILE*)&_file);
     auto       file_size     = elf_file_info->FileSize;
     EFI_STATUS status
       = uefi_call_wrapper(gBS->FreePool, 1, (void*)elf_file_info);

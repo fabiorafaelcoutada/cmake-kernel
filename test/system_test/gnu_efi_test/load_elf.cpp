@@ -17,6 +17,7 @@
 #include "cstring"
 
 #include "load_elf.h"
+#include <memory>
 
 EFI_STATUS
 load_sections(const EFI_FILE& _elf, const Elf64_Phdr& _phdr) {
@@ -33,12 +34,9 @@ load_sections(const EFI_FILE& _elf, const Elf64_Phdr& _phdr) {
         return status;
     }
 
-    /// @todo 无法映射
-    uint64_t addr233 = 0;
-    // print_phdr(&_phdr, 1);
-    status
-      = uefi_call_wrapper(gBS->AllocatePages, 4, AllocateAddress, EfiLoaderData,
-                          section_page_count, (EFI_PHYSICAL_ADDRESS*)&addr233);
+    status = uefi_call_wrapper(gBS->AllocatePages, 4, AllocateAddress,
+                               EfiLoaderData, section_page_count,
+                               (EFI_PHYSICAL_ADDRESS*)&_phdr.p_paddr);
     debug(L"_phdr.p_paddr: [%d] [%d]\n", status, section_page_count);
     if (check_for_fatal_error(status,
                               L"Error allocating pages for ELF segment")) {
@@ -121,14 +119,15 @@ EFI_STATUS load_kernel_image(const EFI_FILE&     _root_file_system,
                              const CHAR16* const _kernel_image_filename,
                              uint64_t&           _kernel_entry_point) {
     EFI_STATUS status      = EFI_SUCCESS;
-    EFI_FILE*  elf         = nullptr;
     uint8_t*   file_buffer = nullptr;
 
+    // 打开 elf 文件
     debug(L"Reading kernel image file\n");
-    status = uefi_call_wrapper(_root_file_system.Open, 5,
-                               (EFI_FILE*)&_root_file_system, &elf,
-                               (CHAR16*)_kernel_image_filename,
-                               EFI_FILE_MODE_READ, EFI_FILE_READ_ONLY);
+    EFI_FILE* elf = nullptr;
+    status        = uefi_call_wrapper(_root_file_system.Open, 5,
+                                      (EFI_FILE*)&_root_file_system, &elf,
+                                      (CHAR16*)_kernel_image_filename,
+                                      EFI_FILE_MODE_READ, EFI_FILE_READ_ONLY);
     if (check_for_fatal_error(status, L"Error opening kernel file")) {
         return status;
     }
@@ -141,7 +140,7 @@ EFI_STATUS load_kernel_image(const EFI_FILE&     _root_file_system,
     }
     debug(L"Kernel file size: %llu\n", get_file_size_ret.second);
 
-    // 分配内存
+    // 分配 elf 文件缓存
     status = uefi_call_wrapper(gBS->AllocatePool, 3, EfiLoaderData,
                                get_file_size_ret.second, (void**)&file_buffer);
     if (check_for_fatal_error(status, L"Error allocating kernel buffer")) {
@@ -179,26 +178,22 @@ EFI_STATUS load_kernel_image(const EFI_FILE&     _root_file_system,
     // 设置内核入口地址
     _kernel_entry_point = ehdr.e_entry;
 
-    status              = load_program_sections(*elf, ehdr, phdr);
-    if (EFI_ERROR(status)) {
+    // status              = load_program_sections(*elf, ehdr, phdr);
+    // if (EFI_ERROR(status)) {
+    //     return status;
+    // }
+
+    // 释放 elf 文件缓存
+    status = uefi_call_wrapper(gBS->FreePool, 1, (void*)file_buffer);
+    if (check_for_fatal_error(status, L"Error freeing file_buffer")) {
         return status;
     }
 
-    // 关闭文件
+    // auto a = std::make_shared<int>;
+
+    // 关闭 elf 文件
     status = uefi_call_wrapper(elf->Close, 1, elf);
     if (check_for_fatal_error(status, L"Error closing elf")) {
-        return status;
-    }
-
-    // 释放 phdr
-    status = uefi_call_wrapper(gBS->FreePool, 1, (void*)phdr);
-    if (check_for_fatal_error(status, L"Error freeing phdr")) {
-        return status;
-    }
-
-    // 释放 shdr
-    status = uefi_call_wrapper(gBS->FreePool, 1, (void*)shdr);
-    if (check_for_fatal_error(status, L"Error freeing shdr")) {
         return status;
     }
 

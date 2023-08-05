@@ -22,21 +22,23 @@
 
 extern "C" EFI_STATUS EFIAPI efi_main(EFI_HANDLE        _image_handle,
                                       EFI_SYSTEM_TABLE* _system_table) {
-    EFI_STATUS status;
-
     try {
         // 初始化 Graphics
         auto graphics = Graphics();
         // 打印图形信息
-        graphics.print_info();
+        // graphics.print_info();
         // 设置为 1920*1080
         graphics.set_mode(PixelBlueGreenRedReserved8BitPerColor, 1920, 1080);
+        // 初始化 Memory
+        auto memory = Memory();
+        memory.print_info();
     } catch (const std::exception& _e) {
         debug(L"Fatal Error: %s\n", _e.what());
         return EFI_LOAD_ERROR;
     }
     return 0;
 
+    EFI_STATUS                       status;
     EFI_FILE*                        root_file_system     = nullptr;
     uint64_t                         kernel_entry_point   = 0;
     EFI_SIMPLE_FILE_SYSTEM_PROTOCOL* file_system_protocol = nullptr;
