@@ -171,7 +171,7 @@ cmake \
 
 1. 编译出带 -g -ggdb 参数的内核
 2. 将 gdbinit 复制到根目录 .gdbinit
-3. 启动 qemu，在 2333 端口开放 telnet，在 1234 端口开放 gdb、
+3. 启动 qemu，在 2333 端口开放 telnet，在 1234 端口开放 gdb
 4. 等待 gdb 连接
 
 qemu 进入等待状态后，就可以通过 gdb 连接进行调试了
@@ -187,7 +187,9 @@ gdb-multiarch
 > c
 ```
 
-更多调试命令请参考 [gdb 手册 ](https://ftp.gnu.org/old-gnu/Manuals/gdb/html_chapter/gdb_toc.html)
+更多调试命令请参考 [gdb 手册 ](https://ftp.gnu.org/old-gnu/Manuals/gdb/html_chapter/gdb_toc.html)。
+
+对 efi 文件的调试需要一些准备步骤，参考 [osdev](https://wiki.osdev.org/Debugging_UEFI_applications_with_GDB)。
 
 ### 文档生成
 

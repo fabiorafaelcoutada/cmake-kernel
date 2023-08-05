@@ -24,6 +24,15 @@
 extern "C" EFI_STATUS EFIAPI efi_main(EFI_HANDLE        _image_handle,
                                       EFI_SYSTEM_TABLE* _system_table) {
     try {
+        // 输出 efi 信息
+        EFI_LOADED_IMAGE* loaded_image = nullptr;
+        auto              status
+          = LibLocateProtocol(&LoadedImageProtocol, (void**)&loaded_image);
+        if (EFI_ERROR(status)) {
+            debug(L"handleprotocol: %d\n", status);
+        }
+        debug(L"Image base: 0x%lx\n", loaded_image->ImageBase);
+
         // 初始化 Graphics
         auto graphics = Graphics();
         // 打印图形信息
