@@ -2,8 +2,8 @@
 #ifndef CMAKE_KERNEL_LOAD_ELF_H
 #define CMAKE_KERNEL_LOAD_ELF_H
 
-#include "elf.h"
-#include "utility"
+#include <elf.h>
+#include <utility>
 
 #ifdef __cplusplus
 extern "C" {
@@ -129,12 +129,12 @@ bool       check_for_fatal_error(IN EFI_STATUS const _status,
 
 /**
  * 将 elf 段加载到内存
- * @param _elf elf 文件句柄
  * @param _phdr 要加载的程序段 phdr
+ * @param _elf_file_buffer elf 文件数据
  * @return efi 错误码
  */
 EFI_STATUS
-load_sections(const EFI_FILE& _elf, const Elf64_Phdr& _phdr);
+load_sections(const Elf64_Phdr& _phdr, const uint8_t* const _elf_file_buffer);
 
 /**
  * 加载程序段
@@ -157,5 +157,40 @@ load_program_sections(const EFI_FILE& _elf, const Elf64_Ehdr& _ehdr,
 EFI_STATUS load_kernel_image(const EFI_FILE&     _root_file_system,
                              const CHAR16* const _kernel_image_filename,
                              uint64_t&           _kernel_entry_point);
+
+/**
+ * 图形相关
+ */
+class Graphics {
+private:
+    /// 图形输出协议
+    EFI_GRAPHICS_OUTPUT_PROTOCOL* gop;
+
+public:
+    /**
+     * 构造函数
+     */
+    Graphics(void);
+
+    /**
+     * 析构函数
+     */
+    ~Graphics(void) = default;
+
+    /**
+     * 设置图形模式
+     * @param _format 图形像素格式，默认为 PixelBlueGreenRedReserved8BitPerColor
+     * @param _w 宽度，默认为 1920
+     * @param _h 高度，默认为 1080
+     */
+    void set_mode(EFI_GRAPHICS_PIXEL_FORMAT _format
+                  = PixelBlueGreenRedReserved8BitPerColor,
+                  uint32_t _w = 1920, uint32_t _h = 1080) const;
+
+    /**
+     * 输出图形信息
+     */
+    void print_info(void) const;
+};
 
 #endif /* CMAKE_KERNEL_LOAD_ELF_H */
