@@ -18,7 +18,7 @@
 
 #include "load_elf.h"
 
-#define KERNEL_EXECUTABLE_PATH (CHAR16*)L"gnu-efi-test_kernel.elf"
+#define KERNEL_EXECUTABLE_PATH (wchar_t*)L"gnu-efi-test_kernel.elf"
 
 extern "C" EFI_STATUS EFIAPI efi_main(EFI_HANDLE        _image_handle,
                                       EFI_SYSTEM_TABLE* _system_table) {
@@ -32,41 +32,12 @@ extern "C" EFI_STATUS EFIAPI efi_main(EFI_HANDLE        _image_handle,
         // 初始化 Memory
         auto memory = Memory();
         memory.print_info();
-    } catch (const std::exception& _e) {
-        debug(L"Fatal Error: %s\n", _e.what());
+        // 加载内核
+        auto elf = Elf(KERNEL_EXECUTABLE_PATH);
+        elf.load_kernel_image(KERNEL_EXECUTABLE_PATH);
+    } catch (const std::exception& e) {
+        debug(L"Fatal Error: %s\n", e.what());
         return EFI_LOAD_ERROR;
-    }
-    return 0;
-
-    EFI_STATUS                       status;
-    EFI_FILE*                        root_file_system     = nullptr;
-    uint64_t                         kernel_entry_point   = 0;
-    EFI_SIMPLE_FILE_SYSTEM_PROTOCOL* file_system_protocol = nullptr;
-
-    debug(L"Initialising File System service\n");
-    status = uefi_call_wrapper(gBS->LocateProtocol, 3,
-                               &gEfiSimpleFileSystemProtocolGuid, nullptr,
-                               (void**)&file_system_protocol);
-    if (EFI_ERROR(status)) {
-        debug(L"Fatal Error: Error locating Simple File "
-              L"System Protocol: %s\n",
-              get_efi_error_message(status));
-
-        return status;
-    }
-
-    debug(L"Located Simple File System Protocol\n");
-    status = uefi_call_wrapper(file_system_protocol->OpenVolume, 2,
-                               file_system_protocol, &root_file_system);
-    if (check_for_fatal_error(status, (CHAR16*)L"Error opening root volume")) {
-        return status;
-    }
-
-    debug(L"Loading Kernel image\n");
-    status = load_kernel_image(*root_file_system, KERNEL_EXECUTABLE_PATH,
-                               kernel_entry_point);
-    if (EFI_ERROR(status)) {
-        return status;
     }
 
     // debug(L"Set Kernel Entry Point to: [0x%llX]\n ", kernel_entry_point);

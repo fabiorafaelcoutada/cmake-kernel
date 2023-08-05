@@ -18,15 +18,15 @@
 
 #include "load_elf.h"
 
-static CHAR16 error_message_buffer[256];
+static wchar_t error_message_buffer[256];
 
-const CHAR16* get_efi_error_message(EFI_STATUS _status) {
+const wchar_t* get_efi_error_message(EFI_STATUS _status) {
     bzero(error_message_buffer, 256);
     StatusToString(error_message_buffer, _status);
     return error_message_buffer;
 }
 
-void debug(const CHAR16* _fmt, ...) {
+void debug(const wchar_t* _fmt, ...) {
     va_list args;
     va_start(args, _fmt);
     VPrint(_fmt, args);
@@ -43,8 +43,8 @@ EFI_STATUS wait_for_input(EFI_INPUT_KEY* _key) {
     return status;
 }
 
-bool check_for_fatal_error(const EFI_STATUS    _status,
-                           const CHAR16* const _error_message) {
+bool check_for_fatal_error(const EFI_STATUS     _status,
+                           const wchar_t* const _error_message) {
     if (EFI_ERROR(_status)) {
         EFI_INPUT_KEY input_key;
 

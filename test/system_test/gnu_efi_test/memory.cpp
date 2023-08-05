@@ -18,22 +18,6 @@
 
 #include "load_elf.h"
 
-Memory::Memory(void) {
-    flush_desc();
-    return;
-}
-
-Memory::~Memory(void) {
-    if (memory_map != nullptr) {
-        EFI_STATUS status = uefi_call_wrapper(gBS->FreePool, 1, memory_map);
-        if (EFI_ERROR(status)) {
-            debug(L"FreePool failed: %d\n", status);
-            throw std::runtime_error("EFI_ERROR(status)");
-        }
-    }
-    return;
-}
-
 void Memory::flush_desc(void) {
     EFI_STATUS status = 0;
     // 第一次读取，获取 MemoryMapSize
@@ -68,6 +52,27 @@ void Memory::flush_desc(void) {
     if (EFI_ERROR(status)) {
         debug(L"GetMemoryMap failed: %d\n", status);
         throw std::runtime_error("EFI_ERROR(status)");
+    }
+    return;
+}
+
+Memory::Memory(void) {
+    flush_desc();
+    return;
+}
+
+Memory::~Memory(void) {
+    if (memory_map == nullptr) {
+        return;
+    }
+    try {
+        EFI_STATUS status = uefi_call_wrapper(gBS->FreePool, 1, memory_map);
+        if (EFI_ERROR(status)) {
+            debug(L"FreePool failed: %d\n", status);
+            throw std::runtime_error("EFI_ERROR(status)");
+        }
+    } catch (const std::exception& e) {
+        debug(L"FreePool failed: %s\n", e.what());
     }
     return;
 }

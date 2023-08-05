@@ -17,8 +17,6 @@ enable_language(CXX)
 
 add_executable(${PROJECT_NAME}_boot.elf
         boot.cpp
-        printf_elf_info.cpp
-        read_elf.cpp
         load_elf.cpp
         err.cpp
         graphics.cpp
