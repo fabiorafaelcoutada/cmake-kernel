@@ -15,6 +15,7 @@
  */
 
 #include <exception>
+#include <stdexcept>
 
 #include "load_elf.h"
 
@@ -26,7 +27,7 @@ extern "C" EFI_STATUS EFIAPI efi_main(EFI_HANDLE        _image_handle,
         // 初始化 Graphics
         auto graphics = Graphics();
         // 打印图形信息
-        // graphics.print_info();
+        graphics.print_info();
         // 设置为 1920*1080
         graphics.set_mode(PixelBlueGreenRedReserved8BitPerColor, 1920, 1080);
         // 初始化 Memory
@@ -35,13 +36,21 @@ extern "C" EFI_STATUS EFIAPI efi_main(EFI_HANDLE        _image_handle,
         // 加载内核
         auto elf = Elf(KERNEL_EXECUTABLE_PATH);
         elf.load_kernel_image(KERNEL_EXECUTABLE_PATH);
+
+        // auto status = uefi_call_wrapper(gBS->ExitBootServices, 2,
+        // _image_handle,
+        //                                 memory.get_map_key());
+        // if (EFI_ERROR(status)) {
+        // debug(L"ExitBootServices failed, Memory Map has Changed %d\n",
+        //    status);
+        // throw std::runtime_error("EFI_ERROR(status)");
+        // }
     } catch (const std::exception& e) {
         debug(L"Fatal Error: %s\n", e.what());
         return EFI_LOAD_ERROR;
     }
 
     // debug(L"Set Kernel Entry Point to: [0x%llX]\n ", kernel_entry_point);
-    //
     // auto kernel_entry = (void (*)(void))0x100000;
     // kernel_entry();
 

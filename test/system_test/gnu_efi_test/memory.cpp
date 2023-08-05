@@ -20,6 +20,20 @@
 
 void Memory::flush_desc(void) {
     EFI_STATUS status = 0;
+    // 回收之前分配的内存
+    if (memory_map != nullptr) {
+        EFI_STATUS status = uefi_call_wrapper(gBS->FreePool, 1, memory_map);
+        if (EFI_ERROR(status)) {
+            debug(L"FreePool failed: %d\n", status);
+            throw std::runtime_error("EFI_ERROR(status)");
+        }
+        // 初始化数据
+        mem_map_size = 0;
+        memory_map   = nullptr;
+        map_key      = 0;
+        desc_size    = 0;
+        desc_version = 0;
+    }
     // 第一次读取，获取 MemoryMapSize
     status = uefi_call_wrapper(gBS->GetMemoryMap, 5, &mem_map_size, memory_map,
                                &map_key, &desc_size, &desc_version);
@@ -31,14 +45,6 @@ void Memory::flush_desc(void) {
     }
 
     // 分配空间
-    if (memory_map != nullptr) {
-        EFI_STATUS status = uefi_call_wrapper(gBS->FreePool, 1, memory_map);
-        if (EFI_ERROR(status)) {
-            debug(L"FreePool failed: %d\n", status);
-            throw std::runtime_error("EFI_ERROR(status)");
-        }
-        memory_map = nullptr;
-    }
     status = uefi_call_wrapper(gBS->AllocatePool, 3, EfiRuntimeServicesData,
                                mem_map_size, (void**)&memory_map);
     if (EFI_ERROR(status)) {
@@ -50,7 +56,7 @@ void Memory::flush_desc(void) {
     status = uefi_call_wrapper(gBS->GetMemoryMap, 5, &mem_map_size, memory_map,
                                &map_key, &desc_size, &desc_version);
     if (EFI_ERROR(status)) {
-        debug(L"GetMemoryMap failed: %d\n", status);
+        debug(L"GetMemoryMap failed2: %d\n", status);
         throw std::runtime_error("EFI_ERROR(status)");
     }
     return;
@@ -155,4 +161,9 @@ void Memory::print_info(void) {
               MMap->VirtualStart, MMap->Attribute);
     }
     return;
+}
+
+uint64_t Memory::get_map_key(void) {
+    flush_desc();
+    return map_key;
 }

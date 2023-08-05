@@ -139,7 +139,13 @@ public:
     /**
      * 输出内存映射信息
      */
-    void print_info(void);
+    void     print_info(void);
+
+    /**
+     * 获取 map_key
+     * @return map_key
+     */
+    uint64_t get_map_key(void);
 };
 
 /**

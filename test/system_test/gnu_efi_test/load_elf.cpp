@@ -747,11 +747,10 @@ void Elf::print_shdr(void) const {
 Elf::Elf(const wchar_t* const _kernel_image_filename) {
     EFI_STATUS status;
     // 打开文件系统协议
-    status = uefi_call_wrapper(gBS->LocateProtocol, 3,
-                               &gEfiSimpleFileSystemProtocolGuid, nullptr,
-                               (void**)&file_system_protocol);
+    status
+      = LibLocateProtocol(&FileSystemProtocol, (void**)&file_system_protocol);
     if (EFI_ERROR(status)) {
-        debug(L"LocateProtocol failed %d\n", status);
+        debug(L"LibLocateProtocol failed %d\n", status);
         throw std::runtime_error("EFI_ERROR(status)");
     }
 
@@ -837,8 +836,6 @@ Elf::~Elf(void) {
             debug(L"Close failed %d\n", status);
             throw std::runtime_error("EFI_ERROR(status)");
         }
-        // 关闭根文件系统
-        // 关闭文件系统协议
     } catch (std::runtime_error& _e) {
         debug(L"~Elf failed %s\n", _e.what());
     }
