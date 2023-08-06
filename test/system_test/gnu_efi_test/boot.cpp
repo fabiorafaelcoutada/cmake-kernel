@@ -14,6 +14,7 @@
  * </table>
  */
 
+#include <cstring>
 #include <exception>
 #include <stdexcept>
 
@@ -31,20 +32,33 @@ extern "C" EFI_STATUS EFIAPI efi_main(EFI_HANDLE        _image_handle,
         if (EFI_ERROR(status)) {
             debug(L"handleprotocol: %d\n", status);
         }
-        debug(L"Image base: 0x%lx\n", loaded_image->ImageBase);
 
-        // 初始化 Graphics
-        auto graphics = Graphics();
-        // 打印图形信息
-        graphics.print_info();
-        // 设置为 1920*1080
-        graphics.set_mode(PixelBlueGreenRedReserved8BitPerColor, 1920, 1080);
-        // 初始化 Memory
-        auto memory = Memory();
-        memory.print_info();
-        // 加载内核
-        auto elf = Elf(KERNEL_EXECUTABLE_PATH);
-        elf.load_kernel_image(KERNEL_EXECUTABLE_PATH);
+        debug(L"Revision:        0x%X\n", loaded_image->Revision);
+        debug(L"ParentHandle:    0x%X\n", loaded_image->ParentHandle);
+        debug(L"SystemTable:     0x%X\n", loaded_image->SystemTable);
+        debug(L"DeviceHandle:    0x%X\n", loaded_image->DeviceHandle);
+        debug(L"FilePath:        0x%X\n", loaded_image->FilePath);
+        debug(L"Reserved:        0x%X\n", loaded_image->Reserved);
+        debug(L"LoadOptionsSize: 0x%X\n", loaded_image->LoadOptionsSize);
+        debug(L"LoadOptions:     0x%X\n", loaded_image->LoadOptions);
+        debug(L"ImageBase:       0x%X\n", loaded_image->ImageBase);
+        debug(L"ImageSize:       0x%X\n", loaded_image->ImageSize);
+        debug(L"ImageCodeType:   0x%X\n", loaded_image->ImageCodeType);
+        debug(L"ImageDataType:   0x%X\n", loaded_image->ImageDataType);
+        debug(L"Unload:          0x%X\n", loaded_image->Unload);
+
+        // // 初始化 Graphics
+        // auto graphics = Graphics();
+        // // 打印图形信息
+        // graphics.print_info();
+        // // 设置为 1920*1080
+        // graphics.set_mode(PixelBlueGreenRedReserved8BitPerColor, 1920, 1080);
+        // // 初始化 Memory
+        // auto memory = Memory();
+        // memory.print_info();
+        // // 加载内核
+        // auto elf = Elf(KERNEL_EXECUTABLE_PATH);
+        // elf.load_kernel_image(KERNEL_EXECUTABLE_PATH);
 
         // auto status = uefi_call_wrapper(gBS->ExitBootServices, 2,
         // _image_handle,
@@ -53,9 +67,14 @@ extern "C" EFI_STATUS EFIAPI efi_main(EFI_HANDLE        _image_handle,
         // debug(L"ExitBootServices failed, Memory Map has Changed %d\n",
         //    status);
         // throw std::runtime_error("EFI_ERROR(status)");
+        auto res = strstr("1234", "abcd");
+        // throw (int)1;
         // }
     } catch (const std::exception& e) {
         debug(L"Fatal Error: %s\n", e.what());
+        return EFI_LOAD_ERROR;
+    } catch (const int e) {
+        debug(L"Fatal Error: %d\n", e);
         return EFI_LOAD_ERROR;
     }
 

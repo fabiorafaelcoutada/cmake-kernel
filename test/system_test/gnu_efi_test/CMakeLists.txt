@@ -28,12 +28,14 @@ add_header_3rd(${PROJECT_NAME}_boot.elf)
 target_compile_options(${PROJECT_NAME}_boot.elf PRIVATE
         -fpermissive -fshort-wchar -Wall -Wextra
         -DGNU_EFI_USE_MS_ABI
-        #        -lgcc -lg++
+        -g -ggdb
+        -lgcc -lg++ -lsupc++ -lstdc++
         -fPIC
         )
 
 target_link_options(${PROJECT_NAME}_boot.elf PRIVATE
-        -nostdlib -shared -Wl,-Bsymbolic
+        -shared -Wl,-Bsymbolic
+        -nostartfiles
         -T ${CMAKE_SOURCE_DIR}/src/kernel/arch/${TARGET_ARCH}/link.ld
         )
 
@@ -41,19 +43,27 @@ target_link_libraries(${PROJECT_NAME}_boot.elf PRIVATE
         ${gnu-efi_BINARY_DIR}/gnuefi/crt0-efi-${TARGET_ARCH}.o
         ${gnu-efi_BINARY_DIR}/gnuefi/libgnuefi.a
         ${gnu-efi_BINARY_DIR}/lib/libefi.a
+        #        ${libcxxrt_BINARY_DIR}/lib/libcxxrt.a
+        )
+
+target_compile_options(cxxrt-static PRIVATE
+        -fPIC
         )
 
 add_dependencies(${PROJECT_NAME}_boot.elf
         gnu-efi
+        cxxrt-static
         )
 
 add_custom_target(${PROJECT_NAME}_boot.efi DEPENDS ${PROJECT_NAME}_boot.elf)
 add_custom_command(TARGET ${PROJECT_NAME}_boot.efi
         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
         COMMAND ${CMAKE_OBJCOPY} ${PROJECT_NAME}_boot.elf ${PROJECT_NAME}_boot.efi
-        -g -R .comment -R .gnu_debuglink -R .note.gnu.build-id
-        -R .gnu.hash -R .plt -R .rela.plt -R .dynstr -R .dynsym -R .rela.dyn
-        -S -R .eh_frame -R .gcc_except_table -R .hash
+        -S
+        -R .comment
+        -R .note.gnu.build-id
+        -R .gnu.hash
+        -R .dynsym
         --target=efi-app-${TARGET_ARCH} --subsystem=10
         COMMENT "Build ${PROJECT_NAME}_boot.efi done."
         )
@@ -83,4 +93,17 @@ add_custom_command(TARGET test_gnu_efi
         -serial stdio -monitor telnet::2333,server,nowait -net none
         -bios ${ovmf_BINARY_DIR}/OVMF_${TARGET_ARCH}.fd
         -hda fat:rw:./image/
+        )
+
+# 在 qemu 中调试
+add_custom_target(test_gnu_efi_debug DEPENDS ${PROJECT_NAME}_boot.efi ${PROJECT_NAME}_kernel.elf ovmf
+        COMMENT "Debug Kernel in qemu ..."
+        COMMAND ${CMAKE_COMMAND} -E echo ${QEMU_FLAGS}
+        COMMAND qemu-system-${TARGET_ARCH}
+        -m 128M
+        -serial stdio -monitor telnet::2333,server,nowait -net none
+        -bios ${ovmf_BINARY_DIR}/OVMF_${TARGET_ARCH}.fd
+        -hda fat:rw:./image/
+        -S
+        -gdb ${QEMU_GDB_PORT}
         )

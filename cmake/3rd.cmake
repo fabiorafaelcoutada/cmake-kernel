@@ -245,7 +245,6 @@ if (${TARGET_ARCH} STREQUAL "x86_64" OR ${TARGET_ARCH} STREQUAL "aarch64")
 endif ()
 
 # https://github.com/gdbinit/Gdbinit
-# @todo 下载下来的文件为 makefile 形式，需要自己编译
 CPMAddPackage(
         NAME gdbinit
         GIT_REPOSITORY https://github.com/gdbinit/Gdbinit.git
@@ -271,6 +270,13 @@ if (gdbinit_ADDED)
             echo "add-symbol-file ${${BOOT_ELF_OUTPUT_NAME}_BINARY_DIR}/${BOOT_ELF_OUTPUT_NAME}" >> ${CMAKE_SOURCE_DIR}/.gdbinit
             )
 endif ()
+
+# https://github.com/libcxxrt/libcxxrt
+CPMAddPackage(
+        NAME libcxxrt
+        GIT_REPOSITORY https://github.com/libcxxrt/libcxxrt
+        GIT_TAG a0f7f5c139a7daf71de0de201b6c405d852b1dc1
+)
 
 # https://github.com/cpm-cmake/CPMLicenses.cmake
 # 保持在文件最后

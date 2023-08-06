@@ -224,21 +224,22 @@ make doc
 目前支持的第三方资源
 
 
-|                          第三方内容                          |                     描述                      |     类型     | 正在使用 |
-| :----------------------------------------------------------: | :-------------------------------------------: | :----------: | :------: |
-|        [CPM](https://github.com/cpm-cmake/CPM.cmake)         |                 cmake 包管理                  | cmake module |    ✔     |
-| [CPMLicences.cmake](https://github.com/TheLartians/CPMLicenses.cmake) |            为第三方包生成 licence             | cmake module |    ✔     |
-|  [google/googletest](https://github.com/google/googletest)   |                     测试                      |      库      |          |
-|   [easylogingpp](https://github.com/amrayn/easyloggingpp)    |                     日志                      |      库      |          |
-|           [rttr](https://github.com/rttrorg/rttr)            |         c++ 反射库，在设备驱动部分用          |      库      |          |
-| [Format.cmake](https://github.com/TheLartians/Format.cmake)  | 代码格式化，支持 clang-format 与 cmake-format | cmake module |          |
-|        [FreeImage](http://freeimage.sourceforge.net/)        |                   图片渲染                    |      库      |          |
-|            [Freetype](https://www.freetype.org/)             |                   字体渲染                    |      库      |          |
-|   [opensbi](https://github.com/riscv-software-src/opensbi)   |                  riscv 引导                   |      库      |    ✔     |
-|     [gnu-efi](https://sourceforge.net/projects/gnu-efi/)     |                 gnu uefi 引导                 |      库      |    ✔     |
-|      [posix-uefi](https://gitlab.com/bztsrc/posix-uefi)      |                posix uefi 引导                |      库      |          |
-|                [ovmf](SimpleKernel/3rd/ovmf)                 |             qemu 使用的 uefi 固件             |     bin      |    ✔     |
-|          [edk2](https://github.com/tianocore/edk2)           |        构建 qemu 使用的 uefi 固件 ovmf        |      库      |          |
+|                                 第三方内容                                 |                  描述                  |      类型      | 正在使用 |
+|:---------------------------------------------------------------------:|:------------------------------------:|:------------:|:----:|
+|             [CPM](https://github.com/cpm-cmake/CPM.cmake)             |              cmake 包管理               | cmake module |  ✔   |
+| [CPMLicences.cmake](https://github.com/TheLartians/CPMLicenses.cmake) |           为第三方包生成 licence            | cmake module |  ✔   |
+|       [google/googletest](https://github.com/google/googletest)       |                  测试                  |      库       |      |
+|        [easylogingpp](https://github.com/amrayn/easyloggingpp)        |                  日志                  |      库       |      |
+|                [rttr](https://github.com/rttrorg/rttr)                |           c++ 反射库，在设备驱动部分用           |      库       |      |
+|      [Format.cmake](https://github.com/TheLartians/Format.cmake)      | 代码格式化，支持 clang-format 与 cmake-format | cmake module |      |
+|            [FreeImage](http://freeimage.sourceforge.net/)             |                 图片渲染                 |      库       |      |
+|                 [Freetype](https://www.freetype.org/)                 |                 字体渲染                 |      库       |      |
+|       [opensbi](https://github.com/riscv-software-src/opensbi)        |               riscv 引导               |      库       |  ✔   |
+|         [gnu-efi](https://sourceforge.net/projects/gnu-efi/)          |             gnu uefi 引导              |      库       |  ✔   |
+|          [posix-uefi](https://gitlab.com/bztsrc/posix-uefi)           |            posix uefi 引导             |      库       |      |
+|                     [ovmf](SimpleKernel/3rd/ovmf)                     |           qemu 使用的 uefi 固件           |     bin      |  ✔   |
+|               [edk2](https://github.com/tianocore/edk2)               |       构建 qemu 使用的 uefi 固件 ovmf       |      库       |      |
+|           [libcxxrt](https://github.com/libcxxrt/libcxxrt)            |              c++ 运行时支持               |      库       |  ✔   |
 
 ## 错误处理
 
