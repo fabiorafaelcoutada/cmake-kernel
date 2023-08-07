@@ -127,8 +127,7 @@ if (${TARGET_ARCH} STREQUAL "riscv64")
                 ${opensbi_BINARY_DIR}
                 COMMAND
                 make
-                # @todo 这个工具链只在 ubuntu 上测试过
-                CROSS_COMPILE=riscv64-linux-gnu-
+                CROSS_COMPILE=${TOOLCHAIN_PREFIX}
                 FW_JUMP=y
                 FW_JUMP_ADDR=0x80200000
                 PLATFORM_RISCV_XLEN=64

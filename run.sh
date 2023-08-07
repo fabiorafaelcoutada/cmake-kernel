@@ -19,7 +19,7 @@ TARGET_ARCH=x86_64
 USE_GNU=ON
 
 if [[ ${USE_GNU} == "ON" ]];then
-    CMAKE_TOOLCHAIN_FILE=`pwd`/cmake/`arch`-${TARGET_ARCH}-gcc.cmake
+    CMAKE_TOOLCHAIN_FILE=`pwd`/cmake/`uname -m`-${TARGET_ARCH}-gcc.cmake
 else
     CMAKE_TOOLCHAIN_FILE=`pwd`/cmake/clang.cmake
 fi

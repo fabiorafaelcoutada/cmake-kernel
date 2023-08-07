@@ -15,7 +15,8 @@ project(
 
 find_package(Doxygen)
 if(NOT DOXYGEN_FOUND)
-    message(FATAL_ERROR "Doxygen NOT FOUND.")
+    message(FATAL_ERROR "Doxygen not found.\n"
+        "Following https://www.doxygen.nl/index.html to install.")
 endif()
 
 # 设置输入文件
