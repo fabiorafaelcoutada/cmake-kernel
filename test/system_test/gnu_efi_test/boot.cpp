@@ -24,11 +24,11 @@
 
 extern "C" EFI_STATUS EFIAPI efi_main(EFI_HANDLE        _image_handle,
                                       EFI_SYSTEM_TABLE* _system_table) {
+    EFI_STATUS status = 0;
     try {
         // 输出 efi 信息
         EFI_LOADED_IMAGE* loaded_image = nullptr;
-        auto              status
-          = LibLocateProtocol(&LoadedImageProtocol, (void**)&loaded_image);
+        status = LibLocateProtocol(&LoadedImageProtocol, (void**)&loaded_image);
         if (EFI_ERROR(status)) {
             debug(L"handleprotocol: %d\n", status);
         }
@@ -59,20 +59,28 @@ extern "C" EFI_STATUS EFIAPI efi_main(EFI_HANDLE        _image_handle,
         // 加载内核
         auto elf = Elf(KERNEL_EXECUTABLE_PATH);
         elf.load_kernel_image(KERNEL_EXECUTABLE_PATH);
-
-        // 退出 boot service
-        status = uefi_call_wrapper(gBS->ExitBootServices, 2, _image_handle,
-                                   memory.get_map_key());
-        if (EFI_ERROR(status)) {
-            debug(L"ExitBootServices failed, Memory Map has Changed %d\n",
-                  status);
-            throw std::runtime_error("EFI_ERROR(status)");
-        }
     } catch (const std::exception& e) {
         debug(L"Fatal Error: %s\n", e.what());
         return EFI_LOAD_ERROR;
     }
-
+    // 退出 boot service
+    uint64_t               desc_count   = 0;
+    EFI_MEMORY_DESCRIPTOR* memory_map   = nullptr;
+    uint64_t               map_key      = 0;
+    uint64_t               desc_size    = 0;
+    uint32_t               desc_version = 0;
+    memory_map = LibMemoryMap(&desc_count, &map_key, &desc_size, &desc_version);
+    if (memory_map == nullptr) {
+        debug(L"GetMemoryMap failed2: memory_map == nullptr\n");
+        throw std::runtime_error("memory_map == nullptr");
+    }
+    status
+      = uefi_call_wrapper(gBS->ExitBootServices, 2, _image_handle, map_key);
+    if (EFI_ERROR(status)) {
+        debug(L"ExitBootServices failed, Memory Map has Changed %d\n", status);
+    }
+    while (1)
+        ;
     // debug(L"Set Kernel Entry Point to: [0x%llX]\n ", kernel_entry_point);
     // auto kernel_entry = (void (*)(void))0x100000;
     // kernel_entry();
