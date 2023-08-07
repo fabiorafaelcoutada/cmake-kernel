@@ -32,22 +32,6 @@ Memory::Memory(void) {
     return;
 }
 
-Memory::~Memory(void) {
-    if (memory_map == nullptr) {
-        return;
-    }
-    try {
-        EFI_STATUS status = uefi_call_wrapper(gBS->FreePool, 1, memory_map);
-        if (EFI_ERROR(status)) {
-            debug(L"FreePool failed: %d\n", status);
-            throw std::runtime_error("EFI_ERROR(status)");
-        }
-    } catch (const std::exception& e) {
-        debug(L"FreePool failed: %s\n", e.what());
-    }
-    return;
-}
-
 void Memory::print_info(void) {
     flush_desc();
     debug(L"Type\t\t\t\tPages\tPhysicalStart\tVirtualStart\tAttribute\n");

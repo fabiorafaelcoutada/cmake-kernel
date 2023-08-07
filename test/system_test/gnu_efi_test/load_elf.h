@@ -134,7 +134,7 @@ public:
     /**
      * 析构函数
      */
-    ~Memory(void);
+    ~Memory(void) = default;
 
     /**
      * 输出内存映射信息
@@ -155,7 +155,6 @@ class Elf {
 private:
     EFI_SIMPLE_FILE_SYSTEM_PROTOCOL* file_system_protocol = nullptr;
     EFI_FILE*                        root_file_system     = nullptr;
-    /// elf 文件句柄
     EFI_FILE*                        elf                  = nullptr;
     size_t                           elf_file_size        = 0;
     uint8_t*                         elf_file_buffer      = nullptr;

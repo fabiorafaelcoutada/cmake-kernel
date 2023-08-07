@@ -135,12 +135,6 @@ size_t Elf::get_file_size(void) const {
     // 获取 elf 文件大小
     auto       elf_file_info = LibFileInfo(elf);
     auto       file_size     = elf_file_info->FileSize;
-    EFI_STATUS status
-      = uefi_call_wrapper(gBS->FreePool, 1, (void*)elf_file_info);
-    if (EFI_ERROR(status)) {
-        debug(L"FreePool failed\n");
-        throw std::runtime_error("EFI_ERROR(status)");
-    }
     return file_size;
 }
 
