@@ -7,7 +7,7 @@
 # 目标为无操作系统的环境
 set(CMAKE_SYSTEM_NAME Generic)
 # 目标架构
-set(CMAKE_SYSTEM_PROCESSOR x86_64)
+set(CMAKE_SYSTEM_PROCESSOR riscv64)
 
 # @todo mac 测试
 if (APPLE)
