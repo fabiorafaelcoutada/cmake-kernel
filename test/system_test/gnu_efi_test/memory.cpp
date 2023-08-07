@@ -19,45 +19,10 @@
 #include "load_elf.h"
 
 void Memory::flush_desc(void) {
-    EFI_STATUS status = 0;
-    // 回收之前分配的内存
-    if (memory_map != nullptr) {
-        EFI_STATUS status = uefi_call_wrapper(gBS->FreePool, 1, memory_map);
-        if (EFI_ERROR(status)) {
-            debug(L"FreePool failed: %d\n", status);
-            throw std::runtime_error("EFI_ERROR(status)");
-        }
-        // 初始化数据
-        mem_map_size = 0;
-        memory_map   = nullptr;
-        map_key      = 0;
-        desc_size    = 0;
-        desc_version = 0;
-    }
-    // 第一次读取，获取 MemoryMapSize
-    status = uefi_call_wrapper(gBS->GetMemoryMap, 5, &mem_map_size, memory_map,
-                               &map_key, &desc_size, &desc_version);
-    if (EFI_ERROR(status)) {
-        if (status != EFI_BUFFER_TOO_SMALL) {
-            debug(L"GetMemoryMap failed: %d\n", status);
-            throw std::runtime_error("EFI_ERROR(status)");
-        }
-    }
-
-    // 分配空间
-    status = uefi_call_wrapper(gBS->AllocatePool, 3, EfiRuntimeServicesData,
-                               mem_map_size, (void**)&memory_map);
-    if (EFI_ERROR(status)) {
-        debug(L"AllocatePool failed: %d\n", status);
-        throw std::runtime_error("EFI_ERROR(status)");
-    }
-
-    // 第二次读取，获取 MemoryMap
-    status = uefi_call_wrapper(gBS->GetMemoryMap, 5, &mem_map_size, memory_map,
-                               &map_key, &desc_size, &desc_version);
-    if (EFI_ERROR(status)) {
-        debug(L"GetMemoryMap failed2: %d\n", status);
-        throw std::runtime_error("EFI_ERROR(status)");
+    memory_map = LibMemoryMap(&desc_count, &map_key, &desc_size, &desc_version);
+    if (memory_map == nullptr) {
+        debug(L"GetMemoryMap failed2: memory_map == nullptr\n");
+        throw std::runtime_error("memory_map == nullptr");
     }
     return;
 }
@@ -86,7 +51,7 @@ Memory::~Memory(void) {
 void Memory::print_info(void) {
     flush_desc();
     debug(L"Type\t\t\t\tPages\tPhysicalStart\tVirtualStart\tAttribute\n");
-    for (uint64_t i = 0; i < mem_map_size / desc_size; i++) {
+    for (uint64_t i = 0; i < desc_count; i++) {
         EFI_MEMORY_DESCRIPTOR* MMap
           = (EFI_MEMORY_DESCRIPTOR*)(((CHAR8*)memory_map) + i * desc_size);
 
@@ -100,7 +65,7 @@ void Memory::print_info(void) {
                 break;
             }
             case EfiLoaderData: {
-                debug(L"EfiLoaderData\t\t");
+                debug(L"EfiLoaderData\t\t\t");
                 break;
             }
             case EfiBootServicesCode: {
@@ -157,9 +122,10 @@ void Memory::print_info(void) {
             }
         }
 
-        Print(L"%d\t%X\t%X\t%X\n", MMap->NumberOfPages, MMap->PhysicalStart,
+        debug(L"%d\t%X\t%X\t%X\n", MMap->NumberOfPages, MMap->PhysicalStart,
               MMap->VirtualStart, MMap->Attribute);
     }
+    debug(L"map_key: 0x%X\n", map_key);
     return;
 }
 

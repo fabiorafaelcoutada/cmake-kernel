@@ -47,34 +47,29 @@ extern "C" EFI_STATUS EFIAPI efi_main(EFI_HANDLE        _image_handle,
         debug(L"ImageDataType:   0x%X\n", loaded_image->ImageDataType);
         debug(L"Unload:          0x%X\n", loaded_image->Unload);
 
-        // // 初始化 Graphics
-        // auto graphics = Graphics();
-        // // 打印图形信息
-        // graphics.print_info();
-        // // 设置为 1920*1080
-        // graphics.set_mode(PixelBlueGreenRedReserved8BitPerColor, 1920, 1080);
-        // // 初始化 Memory
-        // auto memory = Memory();
-        // memory.print_info();
-        // // 加载内核
-        // auto elf = Elf(KERNEL_EXECUTABLE_PATH);
-        // elf.load_kernel_image(KERNEL_EXECUTABLE_PATH);
+        // 初始化 Graphics
+        auto graphics = Graphics();
+        // 打印图形信息
+        graphics.print_info();
+        // 设置为 1920*1080
+        graphics.set_mode(PixelBlueGreenRedReserved8BitPerColor, 1920, 1080);
+        // 初始化 Memory
+        auto memory = Memory();
+        memory.print_info();
+        // 加载内核
+        auto elf = Elf(KERNEL_EXECUTABLE_PATH);
+        elf.load_kernel_image(KERNEL_EXECUTABLE_PATH);
 
-        // auto status = uefi_call_wrapper(gBS->ExitBootServices, 2,
-        // _image_handle,
-        //                                 memory.get_map_key());
-        // if (EFI_ERROR(status)) {
-        // debug(L"ExitBootServices failed, Memory Map has Changed %d\n",
-        //    status);
-        // throw std::runtime_error("EFI_ERROR(status)");
-        auto res = strstr("1234", "abcd");
-        // throw (int)1;
-        // }
+        // 退出 boot service
+        status = uefi_call_wrapper(gBS->ExitBootServices, 2, _image_handle,
+                                   memory.get_map_key());
+        if (EFI_ERROR(status)) {
+            debug(L"ExitBootServices failed, Memory Map has Changed %d\n",
+                  status);
+            throw std::runtime_error("EFI_ERROR(status)");
+        }
     } catch (const std::exception& e) {
         debug(L"Fatal Error: %s\n", e.what());
-        return EFI_LOAD_ERROR;
-    } catch (const int e) {
-        debug(L"Fatal Error: %d\n", e);
         return EFI_LOAD_ERROR;
     }
 
