@@ -202,6 +202,8 @@ if (${TARGET_ARCH} STREQUAL "x86_64" OR ${TARGET_ARCH} STREQUAL "aarch64")
                 ${gnu-efi_BINARY_DIR}
                 COMMAND
                 make
+                # 仅支持 gcc
+                CC=gcc-13
                 ARCH=${TARGET_ARCH}
                 OBJDIR=${gnu-efi_BINARY_DIR}
                 COMMAND
