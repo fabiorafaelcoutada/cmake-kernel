@@ -31,6 +31,10 @@ if (APPLE)
     set(CMAKE_OBJDUMP ${TOOLCHAIN_PREFIX}objdump)
     set(CMAKE_RANLIB ${TOOLCHAIN_PREFIX}ranlib)
 
+    # 跳过编译器检查
+    set(CMAKE_C_COMPILER_FORCED TRUE)
+    set(CMAKE_CXX_COMPILER_FORCED TRUE)
+
     # qemu
     find_program(QEMU qemu-system-x86_64)
     if (NOT QEMU)
