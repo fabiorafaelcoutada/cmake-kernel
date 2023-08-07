@@ -112,8 +112,3 @@ void Memory::print_info(void) {
     debug(L"map_key: 0x%X\n", map_key);
     return;
 }
-
-uint64_t Memory::get_map_key(void) {
-    flush_desc();
-    return map_key;
-}

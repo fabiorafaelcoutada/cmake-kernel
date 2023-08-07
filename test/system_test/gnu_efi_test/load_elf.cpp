@@ -35,106 +35,10 @@ static size_t char2wchar(wchar_t* _d, const char* _s) {
     return i;
 }
 
-EFI_STATUS
-load_sections(const EFI_FILE& _elf, const Elf64_Phdr& _phdr) {
-    EFI_STATUS status;
-    void*      data               = nullptr;
-    // 计算使用的内存页数
-    uint64_t   section_page_count = EFI_SIZE_TO_PAGES(_phdr.p_memsz);
-
-    // 设置文件偏移到 p_offset
-    status = uefi_call_wrapper(_elf.SetPosition, 2, (EFI_FILE*)&_elf,
-                               _phdr.p_offset);
-    if (check_for_fatal_error(
-          status, L"Error setting file pointer to segment offset")) {
-        return status;
-    }
-
-    status = uefi_call_wrapper(gBS->AllocatePages, 4, AllocateAddress,
-                               EfiLoaderData, section_page_count,
-                               (EFI_PHYSICAL_ADDRESS*)&_phdr.p_paddr);
-    debug(L"_phdr.p_paddr: [%d] [%d]\n", status, section_page_count);
-    if (check_for_fatal_error(status,
-                              L"Error allocating pages for ELF segment")) {
-        return status;
-    }
-
-    if (_phdr.p_filesz > 0) {
-        auto buffer_read_size = _phdr.p_filesz;
-        // 为 program_data 分配内存
-        status = uefi_call_wrapper(gBS->AllocatePool, 3, EfiLoaderCode,
-                                   buffer_read_size, (void**)&data);
-        if (check_for_fatal_error(status,
-                                  L"Error allocating kernel segment buffer")) {
-            return status;
-        }
-        // 读数据
-        status = uefi_call_wrapper(_elf.Read, 3, (EFI_FILE*)&_elf,
-                                   &buffer_read_size, (void*)data);
-        if (check_for_fatal_error(status, L"Error reading segment data")) {
-            return status;
-        }
-
-        // 将读出来的数据复制到其对应的物理地址
-        uefi_call_wrapper(gBS->CopyMem, 3, (void*)_phdr.p_paddr, data,
-                          _phdr.p_filesz);
-
-        // 释放 program_data
-        status = uefi_call_wrapper(gBS->FreePool, 1, data);
-        if (check_for_fatal_error(status, L"Error freeing program section")) {
-            return status;
-        }
-    }
-
-    // 计算填充大小
-    EFI_PHYSICAL_ADDRESS zero_fill_start = _phdr.p_paddr + _phdr.p_filesz;
-    uint64_t             zero_fill_count = _phdr.p_memsz - _phdr.p_filesz;
-    if (zero_fill_count > 0) {
-        debug(L"Debug: Zero-filling %llu bytes at address '0x%llx'\n",
-              zero_fill_count, zero_fill_start);
-        // 将填充部分置 0
-        uefi_call_wrapper(gBS->SetMem, 3, (void*)zero_fill_start,
-                          zero_fill_count, 0);
-    }
-
-    return EFI_SUCCESS;
-}
-
-EFI_STATUS
-load_program_sections(const EFI_FILE& _elf, const Elf64_Ehdr& _ehdr,
-                      const Elf64_Phdr* const _phdr) {
-    EFI_STATUS status;
-    uint64_t   loaded = 0;
-
-    if (_ehdr.e_phnum == 0) {
-        debug(L"Fatal Error: No program segments to load in Kernel image\n");
-        return EFI_INVALID_PARAMETER;
-    }
-
-    for (uint64_t i = 0; i < _ehdr.e_phnum; i++) {
-        if (_phdr[i].p_type != PT_LOAD) {
-            continue;
-        }
-        status = load_sections(_elf, _phdr[i]);
-        if (EFI_ERROR(status)) {
-            return status;
-        }
-        loaded++;
-    }
-
-    if (loaded == 0) {
-        debug(
-          L"Fatal Error: No loadable program segments found in Kernel image\n");
-        return EFI_NOT_FOUND;
-    }
-
-    return EFI_SUCCESS;
-}
-
 size_t Elf::get_file_size(void) const {
     // 获取 elf 文件大小
-    auto       elf_file_info = LibFileInfo(elf);
-    auto       file_size     = elf_file_info->FileSize;
+    auto elf_file_info = LibFileInfo(elf);
+    auto file_size     = elf_file_info->FileSize;
     return file_size;
 }
 
@@ -738,6 +642,93 @@ void Elf::print_shdr(void) const {
     return;
 }
 
+void Elf::load_sections(const Elf64_Phdr& _phdr) const {
+    EFI_STATUS status;
+    void*      data               = nullptr;
+    // 计算使用的内存页数
+    uint64_t   section_page_count = EFI_SIZE_TO_PAGES(_phdr.p_memsz);
+
+    // 设置文件偏移到 p_offset
+    status = uefi_call_wrapper(elf->SetPosition, 2, elf, _phdr.p_offset);
+    if (EFI_ERROR(status)) {
+        debug(L"SetPosition failed %d\n", status);
+        throw std::runtime_error("memory_map == nullptr");
+    }
+    uint64_t aaa = 0;
+    // status = uefi_call_wrapper(gBS->AllocatePages, 4, AllocateAddress,
+    //                            EfiLoaderData, section_page_count,
+    //                            (EFI_PHYSICAL_ADDRESS*)&_phdr.p_paddr);
+    status       = uefi_call_wrapper(gBS->AllocatePages, 4, AllocateAnyPages,
+                                     EfiLoaderData, section_page_count,
+                                     (EFI_PHYSICAL_ADDRESS*)&aaa);
+    debug(L"_phdr.p_paddr: [%d] [%d] 0x%X\n", status, section_page_count, aaa);
+    if (EFI_ERROR(status)) {
+        debug(L"AllocatePages AllocateAddress failed %d\n", status);
+        throw std::runtime_error("EFI_ERROR(status)");
+    }
+
+    if (_phdr.p_filesz > 0) {
+        auto buffer_read_size = _phdr.p_filesz;
+        // 为 program_data 分配内存
+        status = uefi_call_wrapper(gBS->AllocatePool, 3, EfiLoaderCode,
+                                   buffer_read_size, (void**)&data);
+        if (EFI_ERROR(status)) {
+            debug(L"AllocatePool failed %d\n", status);
+            throw std::runtime_error("EFI_ERROR(status)");
+        }
+        // 读数据
+        status = uefi_call_wrapper(elf->Read, 3, elf, &buffer_read_size,
+                                   (void*)data);
+        if (EFI_ERROR(status)) {
+            debug(L"Read failed %d\n", status);
+            throw std::runtime_error("EFI_ERROR(status)");
+        }
+
+        // 将读出来的数据复制到其对应的物理地址
+        uefi_call_wrapper(gBS->CopyMem, 3, (void*)aaa + _phdr.p_paddr, data,
+                          _phdr.p_filesz);
+
+        // 释放 program_data
+        status = uefi_call_wrapper(gBS->FreePool, 1, data);
+        if (EFI_ERROR(status)) {
+            debug(L"FreePool failed %d\n", status);
+            throw std::runtime_error("EFI_ERROR(status)");
+        }
+    }
+
+    // 计算填充大小
+    EFI_PHYSICAL_ADDRESS zero_fill_start = aaa + _phdr.p_paddr + _phdr.p_filesz;
+    uint64_t             zero_fill_count = _phdr.p_memsz - _phdr.p_filesz;
+    if (zero_fill_count > 0) {
+        debug(L"Debug: Zero-filling %llu bytes at address '0x%llx'\n",
+              zero_fill_count, zero_fill_start);
+        // 将填充部分置 0
+        uefi_call_wrapper(gBS->SetMem, 3, (void*)zero_fill_start,
+                          zero_fill_count, 0);
+    }
+
+    return;
+}
+
+void Elf::load_program_sections(void) const {
+    uint64_t loaded = 0;
+    for (uint64_t i = 0; i < ehdr.e_phnum; i++) {
+        if (phdr[i].p_type != PT_LOAD) {
+            continue;
+        }
+        load_sections(phdr[i]);
+        loaded++;
+    }
+
+    if (loaded == 0) {
+        debug(
+          L"Fatal Error: No loadable program segments found in Kernel image\n");
+        throw std::runtime_error("loaded == 0");
+    }
+
+    return;
+}
+
 Elf::Elf(const wchar_t* const _kernel_image_filename) {
     EFI_STATUS status;
     // 打开文件系统协议
@@ -807,23 +798,12 @@ Elf::Elf(const wchar_t* const _kernel_image_filename) {
     get_shdr();
     print_shdr();
 
-    // status              = load_program_sections(*elf, ehdr, phdr);
-    // if (EFI_ERROR(status)) {
-    //     return status;
-    // }
-
     return;
 }
 
 Elf::~Elf(void) {
     try {
         EFI_STATUS status;
-        // 释放 elf 文件缓存
-        status = uefi_call_wrapper(gBS->FreePool, 1, (void*)elf_file_buffer);
-        if (EFI_ERROR(status)) {
-            debug(L"FreePool failed %d\n", status);
-            throw std::runtime_error("EFI_ERROR(status)");
-        }
         // 关闭 elf 文件
         status = uefi_call_wrapper(elf->Close, 1, elf);
         if (EFI_ERROR(status)) {
@@ -836,6 +816,12 @@ Elf::~Elf(void) {
     return;
 }
 
-uint64_t Elf::load_kernel_image(const wchar_t* const _kernel_image_filename) {
-    return 0;
+uint64_t Elf::load_kernel_image(void) const {
+    try {
+        load_program_sections();
+    } catch (std::runtime_error& _e) {
+        debug(L"load_kernel_image %s\n", _e.what());
+    }
+
+    return 0x06409000 + 0x1040;
 }

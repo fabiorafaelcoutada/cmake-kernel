@@ -46,37 +46,6 @@ bool           check_for_fatal_error(IN EFI_STATUS const _status,
                                      IN const wchar_t*   _error_message);
 
 /**
- * 将 elf 段加载到内存
- * @param _phdr 要加载的程序段 phdr
- * @param _elf_file_buffer elf 文件数据
- * @return efi 错误码
- */
-EFI_STATUS
-load_sections(const Elf64_Phdr& _phdr, const uint8_t* const _elf_file_buffer);
-
-/**
- * 加载程序段
- * @param _elf elf 文件句柄
- * @param _ehdr elf ehdr
- * @param _phdr elf phdr 指针
- * @return efi 错误码
- */
-EFI_STATUS
-load_program_sections(const EFI_FILE& _elf, const Elf64_Ehdr& _ehdr,
-                      const Elf64_Phdr* const _phdr);
-
-/**
- * 加载 elf 内核
- * @param _root_file_system efi 根文件系统句柄
- * @param _kernel_image_filename elf 内核文件路径
- * @param _kernel_entry_point 内核入口点
- * @return efi 错误码
- */
-EFI_STATUS load_kernel_image(const EFI_FILE&      _root_file_system,
-                             const wchar_t* const _kernel_image_filename,
-                             uint64_t&            _kernel_entry_point);
-
-/**
  * 图形相关
  */
 class Graphics {
@@ -139,13 +108,7 @@ public:
     /**
      * 输出内存映射信息
      */
-    void     print_info(void);
-
-    /**
-     * 获取 map_key
-     * @return map_key
-     */
-    uint64_t get_map_key(void);
+    void print_info(void);
 };
 
 /**
@@ -208,16 +171,26 @@ private:
      */
     void                             print_shdr(void) const;
 
+    /**
+     * 将 elf 段加载到内存
+     * @param _phdr 要加载的程序段 phdr
+     */
+    void load_sections(const Elf64_Phdr& _phdr) const;
+
+    /**
+     * 加载程序段
+     */
+    void load_program_sections(void) const;
+
 public:
     Elf(const wchar_t* const _kernel_image_filename);
     ~Elf(void);
 
     /**
      * 加载 elf 内核
-     * @param _kernel_image_filename elf 内核文件路径
      * @return 内核入口点
      */
-    uint64_t load_kernel_image(const wchar_t* const _kernel_image_filename);
+    uint64_t load_kernel_image(void) const;
 };
 
 #endif /* CMAKE_KERNEL_LOAD_ELF_H */

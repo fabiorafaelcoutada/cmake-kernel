@@ -24,7 +24,8 @@
 
 extern "C" EFI_STATUS EFIAPI efi_main(EFI_HANDLE        _image_handle,
                                       EFI_SYSTEM_TABLE* _system_table) {
-    EFI_STATUS status = 0;
+    EFI_STATUS status      = 0;
+    uint64_t   kernel_addr = 0;
     try {
         // 输出 efi 信息
         EFI_LOADED_IMAGE* loaded_image = nullptr;
@@ -57,8 +58,8 @@ extern "C" EFI_STATUS EFIAPI efi_main(EFI_HANDLE        _image_handle,
         auto memory = Memory();
         memory.print_info();
         // 加载内核
-        auto elf = Elf(KERNEL_EXECUTABLE_PATH);
-        elf.load_kernel_image(KERNEL_EXECUTABLE_PATH);
+        auto elf    = Elf(KERNEL_EXECUTABLE_PATH);
+        kernel_addr = elf.load_kernel_image();
     } catch (const std::exception& e) {
         debug(L"Fatal Error: %s\n", e.what());
         return EFI_LOAD_ERROR;
@@ -74,16 +75,16 @@ extern "C" EFI_STATUS EFIAPI efi_main(EFI_HANDLE        _image_handle,
         debug(L"GetMemoryMap failed2: memory_map == nullptr\n");
         throw std::runtime_error("memory_map == nullptr");
     }
+    // debug(L"Close failed122 %d\n", 1);
     status
       = uefi_call_wrapper(gBS->ExitBootServices, 2, _image_handle, map_key);
     if (EFI_ERROR(status)) {
         debug(L"ExitBootServices failed, Memory Map has Changed %d\n", status);
     }
-    while (1)
-        ;
-    // debug(L"Set Kernel Entry Point to: [0x%llX]\n ", kernel_entry_point);
-    // auto kernel_entry = (void (*)(void))0x100000;
-    // kernel_entry();
+
+    // debug(L"Set Kernel Entry Point to: [0x%llX]\n ", kernel_addr);
+    auto kernel_entry = (void (*)(void))kernel_addr;
+    kernel_entry();
 
     return EFI_SUCCESS;
 }
