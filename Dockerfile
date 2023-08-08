@@ -6,9 +6,21 @@
 
 FROM ubuntu:latest
 
+# 替换为你想要的用户名
+ARG user=zone
+ARG password=zone
+
+# 元数据
+LABEL maintainer="Zone.N" email="zone.niuzh@hotmail.com"
+
+# 安装所有依赖
 RUN DEBIAN_FRONTEND=noninteractive \
     && apt update \
-    && apt install --fix-missing -y \
+    && apt install --no-install-recommends --fix-missing -y \
+        curl \
+        wget \
+        sudo \
+        zsh \
         zip \
         openssh-server \
         rsync \
@@ -29,18 +41,29 @@ RUN DEBIAN_FRONTEND=noninteractive \
         g++ \
         gcc-riscv64-linux-gnu \
         g++-riscv64-linux-gnu \
-    && apt clean
+    && apt clean \
+    && sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 
-# configure SSH for communication with Visual Studio
+# 设置 ssh
 RUN mkdir -p /var/run/sshd \
     && echo 'PasswordAuthentication yes' >> /etc/ssh/sshd_config \
+    && echo 'PubkeyAuthentication yes' >> /etc/ssh/sshd_config \
+    && echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config \
     && ssh-keygen -A
 
-#没有mount mac下的目录到容器中，因为这样git的性能会非常糟糕。
-# 所以不要轻易删除docker container，特别是如果你还有代码没提交时，删除container会导致在container中修改的代码丢失。
-#VOLUME /projects
+# 添加用户
+RUN useradd --create-home --no-log-init --shell /bin/zsh ${user} \
+    && adduser ${user} sudo \
+    && echo "${user}:${password}" | chpasswd
 
-# expose port 22
+# 指定容器登录用户
+# USER ${user}
+
+# 指定容器起来的工作目录
+WORKDIR /home/${user}
+
+# 开放 22 端口
 EXPOSE 22
 
+# 启动 ssh 服务
 ENTRYPOINT service ssh restart && bash
