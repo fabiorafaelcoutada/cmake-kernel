@@ -1,0 +1,270 @@
+# This file is a part of MRNIU/cmake-kernel
+# (https://github.com/MRNIU/cmake-kernel).
+#
+# .clang-tidy for MRNIU/cmake-kernel.
+
+---
+Checks: '-*,
+# 参数注释
+bugprone-argument-comment,
+bugprone-assert-side-effect,
+bugprone-bad-signal-to-kill-thread,
+# 要求相同分支合并
+bugprone-branch-clone,
+# 基类拷贝构造函数初始化
+bugprone-copy-constructor-init,
+bugprone-dangling-handle,
+# 禁止返回动态初始化的静态变量
+bugprone-dynamic-static-initializers,
+# 检查截断和溢出的情况
+bugprone-fold-init-type,
+# 检查同名但未定义的命名空间
+bugprone-forward-declaration-namespace,
+bugprone-forwarding-reference-overload,
+bugprone-inaccurate-erase,
+# 排除不正确舍入问题
+bugprone-incorrect-roundings,
+# 检查会导致精度损失的整数除法
+bugprone-integer-division,
+bugprone-lambda-function-name,
+# 查找由于缺少括号而可能具有意外行为的宏
+bugprone-macro-parentheses,
+bugprone-macro-repeated-side-effects,
+# 检查字符串操作的不当行为
+bugprone-misplaced-operator-in-strlen-in-alloc,
+# 检查错误的指针动态分配内存
+bugprone-misplaced-pointer-arithmetic-in-alloc,
+# 类型转换造成的精度损失
+bugprone-misplaced-widening-cast,
+# 检查 std::move() 的错误使用
+bugprone-move-forwarding-reference,
+# 检查多语句宏定义
+bugprone-multiple-statement-macro,
+# 查找容易出错的 noescape
+bugprone-no-escape,
+# 检查可能导致非空终止结果的函数调用
+bugprone-not-null-terminated-result,
+# 检查对父虚函数的调用
+bugprone-parent-virtual-call,
+# 检查对 pthread_* 或 posix_* 函数调用是否判断负返回值
+bugprone-posix-return,
+# 检查不规范的下划线使用
+bugprone-reserved-identifier,
+# 检查可能出错的sizeof使用
+bugprone-sizeof-container,
+# 检查可能出错的sizeof使用
+bugprone-sizeof-expression,
+# 检查唤醒函数的错误使用
+bugprone-spuriously-wake-up-functions,
+# 检查容易出错的字符串初始化
+bugprone-string-constructor,
+# 检查容易出错的字符串赋值(可能导致误判)
+bugprone-string-integer-assignment,
+# 检查带有嵌入\0字符的字符串
+bugprone-string-literal-with-embedded-nul,
+# 容易出错的枚举用法
+bugprone-suspicious-enum-usage,
+# 检查错误的文件包含
+bugprone-suspicious-include,
+# 检查错误的 memset 的使用
+bugprone-suspicious-memset-usage,
+# 检查可疑的逗号丢失
+bugprone-suspicious-missing-comma,
+# 检查容易出错的分号
+bugprone-suspicious-semicolon,
+# 检查可疑的字符串比较
+bugprone-suspicious-string-compare,
+bugprone-suspicious-memory-comparison,
+bugprone-suspicious-realloc-usage,
+# 检查容易出错的交换参数
+bugprone-swapped-arguments,
+# 检查 do-while 常为 false 时的 continue 使用
+bugprone-terminating-continue,
+# 检查可能缺失的throw关键字
+bugprone-throw-keyword-missing,
+# 检查容易出错的循环变量
+bugprone-too-small-loop-variable,
+# 查找容易出错的未定义内存操作
+bugprone-undefined-memory-manipulation,
+# 检查容易出错的委托构造函数
+bugprone-undelegated-constructor,
+# 检查容易出错的未处理自赋值
+bugprone-unhandled-self-assignment,
+# 检查看起来像 RAII 对象的临时对象
+bugprone-unused-raii,
+# 检查未使用的一些返回值（如返回指针）
+bugprone-unused-return-value,
+# 禁止使用std::move之后的对象仍被使用
+bugprone-use-after-move,
+# 检查函数名与基类虚函数类似的函数声明
+bugprone-virtual-near-miss,
+# 会报未知的警告
+cert-dcl21-cpp,
+# 检查对std posix等命名空间的修改
+cert-dcl58-cpp,
+# 检查不验证转换字符串到数字的有效性的代码
+cert-err34-c,
+cert-err52-cpp,
+cert-err60-cpp,
+# 检查浮点类型的循环
+cert-flp30-c,
+cert-msc50-cpp,
+cert-msc51-cpp,
+cert-str34-c,
+# 检查 extern 对象的全局变量的初始值设定项初始化顺序问题
+cppcoreguidelines-interfaces-global-init,
+cppcoreguidelines-narrowing-conversions,
+cppcoreguidelines-pro-type-member-init,
+# 标记static_cast的使用
+cppcoreguidelines-pro-type-static-cast-downcast,
+# 检查导致 slice 的情况
+cppcoreguidelines-slicing,
+google-default-arguments,
+# 检查显式构造函数，避免隐式转换带来的风险
+google-explicit-constructor,
+# 检查用户自定义表述的重载运算符
+google-runtime-operator,
+# 确保 throw 表达式中的每个值都是 std::exception 的实例
+hicpp-exception-baseclass,
+# 有 if 和 else if 一定要包含 else
+hicpp-multiway-paths-covered,
+# 检查 const 的错误使用
+misc-misplaced-const,
+# 检查 new 和 delete
+misc-new-delete-overloads,
+# 检查函数递归错误
+misc-no-recursion,
+# 检查一些对象，不允许复制，比如FILE
+misc-non-copyable-objects,
+# 查找违反“按值抛出，按引用捕捉”的规则
+misc-throw-by-value-catch-by-reference,
+# 检查重载运算符的错误返回类型
+misc-unconventional-assign-operator,
+# 将 unique_ptr::reset(release()) 替换为 std::move()
+misc-uniqueptr-reset-release,
+# 替换 std::bind() 的使用
+modernize-avoid-bind,
+# 嵌套命名空间的简化（可以简化时）
+modernize-concat-nested-namespaces,
+# 检查 c++ 中弃用的 c 头文件
+modernize-deprecated-headers,
+# 检查弃用的类方法
+modernize-deprecated-ios-base-aliases,
+# 避免有风险的循环，替换为c++11风格
+modernize-loop-convert,
+# 对于 share_ptr 的一些更改
+modernize-make-shared,
+# 对于 unique_ptr 的一些更改
+modernize-make-unique,
+modernize-pass-by-value,
+# 字符串初始化的风格检查
+modernize-raw-string-literal,
+# 检查冗余的void
+modernize-redundant-void-arg,
+# 用 unique_ptr 替换 auto_ptr
+modernize-replace-auto-ptr,
+modernize-replace-disallow-copy-and-assign-macro,
+# 将 std::random_shuffle 替换为 std::shuffle
+modernize-replace-random-shuffle,
+# 用花括号初始化器列表替换返回中对构造函数的显式调用c
+modernize-return-braced-init-list,
+# 关于缩放的使用
+modernize-shrink-to-fit,
+# 关于static_assert空字符串的检查
+modernize-unary-static-assert,
+# 检查 auto 的使用风格
+modernize-use-auto,
+# 检查 bool 类型，用 true 和 false 表示
+modernize-use-bool-literals,
+# 在 std::vector、std::deque、std::list 中插入的使用限制
+modernize-use-emplace,
+# 将特殊成员函数的默认主体替换为显式默认函数声明
+modernize-use-equals-default,
+# 将删除的特殊成员函数显式表示
+modernize-use-equals-delete,
+# const成员函数的使用风格
+modernize-use-nodiscard,
+# 函数定义的 throw 替换为 noexcept
+modernize-use-noexcept,
+# 将空指针 NULL 改为 nullptr
+modernize-use-nullptr,
+# 在重载虚函数中添加 override 声明
+modernize-use-override,
+modernize-use-transparent-functors,
+modernize-use-uncaught-exceptions,
+# 关于消息传递接口的检查
+mpi-buffer-deref,
+# 检查消息传递接口不匹配问题
+mpi-type-mismatch,
+openmp-use-default-none,
+# 优化 find 的效率
+performance-faster-string-find,
+# 不使用 for 循环里使用 auto 的警告
+performance-for-range-copy,
+# for 循环中，变量的隐式表示（auto）代替显式表示
+performance-implicit-conversion-in-loop,
+# 检查关联容器中的低效使用
+performance-inefficient-algorithm,
+# 检查性能低效的字符串连接，字符串拼接改为 append，而不是 operator+
+performance-inefficient-string-concatenation,
+# 查找可能导致不必要的内存重新分配的低效 vector 操作
+performance-inefficient-vector-operation,
+# 关于 std::move 的一些警告
+performance-move-const-arg,
+# 标记移动构造函数初始化
+performance-move-constructor-init,
+performance-no-automatic-move,
+# 检查移动构造函数没有标记 noexcept 或者为 false 的情况
+performance-noexcept-move-constructor,
+# 检查外部可破坏析构函数的情况
+performance-trivially-destructible,
+# 数学库，从c到c++的转换
+performance-type-promotion-in-math-fn,
+performance-unnecessary-copy-initialization,
+# 使用参数的移动(std::move)，而不是复制
+performance-unnecessary-value-param,
+portability-simd-intrinsics,
+# 检查函数声明是否具有顶级参数 const
+readability-avoid-const-params-in-decls,
+# 常量返回值的限制
+readability-const-return-type,
+# 检查对 size() 调用是否可以用 empty() 来代替
+readability-container-size-empty,
+# 将不使用 this 的非静态成员函数转换为静态成员函数
+readability-convert-member-functions-to-static,
+# 查找检查指针是否存在的语句
+readability-delete-null-pointer,
+readability-deleted-default,
+# 查找参数名称不一致的声明
+readability-inconsistent-declaration-parameter-name,
+# 检查可以被定义为 const 的非静态成员函数
+readability-make-member-function-const,
+# 检查误导性缩进
+readability-misleading-indentation,
+# 检查出错的索引
+readability-misplaced-array-index,
+# 检查可以更改为指向常量类型的指针类型的函数参数
+readability-non-const-parameter,
+# 删除无用的return和continue
+readability-redundant-control-flow,
+# 删除冗余的变量和函数声明
+readability-redundant-declaration,
+# 删除多余的指针冗余
+readability-redundant-function-ptr-dereference,
+# 删除对智能指针 .get() 方法的冗余调用
+readability-redundant-smartptr-get,
+# 检查不必要的调用：std::string::c_str() 和 std::string::data()
+readability-redundant-string-cstr,
+# 查找不必要的字符串初始化
+readability-redundant-string-init,
+# 简化下标表达式
+readability-simplify-subscript-expr,
+# 优化类静态成员的访问方式
+readability-static-accessed-through-instance,
+# 检查匿名命名空间中的静态成员定义
+readability-static-definition-in-anonymous-namespace,
+# 优化字符串比较的使用，尽量使用 == 或者 !=
+readability-string-compare,
+# 替换 <unique_ptr>.release() 为 <unique_ptr> = nullptr
+readability-uniqueptr-delete-release,
+readability-use-anyofallof'
