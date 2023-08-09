@@ -207,6 +207,22 @@ make doc
 
 使用浏览器打开 `cmake-kernel/build_x86_64/doc/html/index.html` 查看文档。
 
+### 静态分析
+
+使用 clang-tidy 与 cppcheck
+
+需要安装的程序
+
+```shell
+sudo apt install -y clang-tidy cppcheck
+```
+
+生成文档
+
+```shell
+make doc
+```
+
 ### 测试覆盖率
 
 ### docker
@@ -215,7 +231,8 @@ make doc
 
 ### 第三方资源
 
-使用 [CPM](https://github.com/cpm-cmake/CPM.cmake) 进行管理，下载的源文件会放到 3rd 文件夹下，编译结果会放在 build/_deps 文件夹下。
+使用 [CPM](https://github.com/cpm-cmake/CPM.cmake) 进行管理，下载的源文件会放到 3rd 文件夹下，编译结果会放在 build/_deps
+文件夹下。
 
 对于原生支持 cmake 的项目，可以直接引用。
 

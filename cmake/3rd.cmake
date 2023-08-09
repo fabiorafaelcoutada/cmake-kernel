@@ -300,6 +300,7 @@ add_custom_target(3rd_licenses
         write-licenses
         )
 
+# doxygen
 find_package(Doxygen
         REQUIRED dot)
 if (NOT DOXYGEN_FOUND)
@@ -307,7 +308,35 @@ if (NOT DOXYGEN_FOUND)
             "Following https://www.doxygen.nl/index.html to install.")
 endif ()
 
+# clang-tidy
+find_program(CLANG_TIDY_EXE NAMES clang-tidy)
+if (NOT CLANG_TIDY_EXE)
+    message(FATAL_ERROR "clang-tidy not found.\n"
+            "Following https://clang.llvm.org/extra/clang-tidy to install.")
+endif ()
+# Control output messages to occur only once
+set(CLANG_TIDY_MESSAGE_OUTPUT
+        FALSE
+        CACHE INTERNAL FALSE)
+mark_as_advanced(FORCE CLANG_TIDY_EXE CMAKE_C_CLANG_TIDY CMAKE_CXX_CLANG_TIDY)
 
+set(CMAKE_ASM_CLANG_TIDY
+        ${CLANG_TIDY_EXE} --checks='Checks'
+        )
+set(CMAKE_C_CLANG_TIDY
+        ${CLANG_TIDY_EXE} --checks='Checks'
+        )
+set(CMAKE_CXX_CLANG_TIDY
+        ${CLANG_TIDY_EXE} --checks='Checks'
+        )
+
+# cppcheck
+set(CMAKE_C_CPPCHECK
+        ${CLANG_TIDY_EXE} --checks='Checks'
+        )
+set(CMAKE_CXX_CPPCHECK
+        ${CLANG_TIDY_EXE} --checks='Checks'
+        )
 
 
 
