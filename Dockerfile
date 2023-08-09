@@ -42,6 +42,7 @@ RUN DEBIAN_FRONTEND=noninteractive \
         gcc-riscv64-linux-gnu \
         g++-riscv64-linux-gnu \
     && apt clean \
+    && git config --global --add safe.directory '*' \
     && sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 
 # 设置 ssh
