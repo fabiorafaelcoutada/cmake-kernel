@@ -281,13 +281,13 @@ CPMAddPackage(
 )
 
 # https://github.com/cpm-cmake/CPMLicenses.cmake
-# 保持在文件最后
+# 保持在 CPMAddPackage 的最后
 CPMAddPackage(
         NAME CPMLicenses.cmake
         GITHUB_REPOSITORY cpm-cmake/CPMLicenses.cmake
         VERSION 0.0.7
 )
-if (gnu-efi_ADDED)
+if (CPMLicenses.cmake_ADDED)
     cpm_licenses_create_disclaimer_target(
             write-licenses "${CMAKE_CURRENT_SOURCE_DIR}/3rd/LICENSE" "${CPM_PACKAGES}"
     )
@@ -299,3 +299,15 @@ add_custom_target(3rd_licenses
         make
         write-licenses
         )
+
+find_package(Doxygen
+        REQUIRED dot)
+if (NOT DOXYGEN_FOUND)
+    message(FATAL_ERROR "Doxygen not found.\n"
+            "Following https://www.doxygen.nl/index.html to install.")
+endif ()
+
+
+
+
+

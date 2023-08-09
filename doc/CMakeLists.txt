@@ -13,24 +13,20 @@ project(
         VERSION 0.0.1
 )
 
-find_package(Doxygen)
-if(NOT DOXYGEN_FOUND)
-    message(FATAL_ERROR "Doxygen not found.\n"
-        "Following https://www.doxygen.nl/index.html to install.")
-endif()
-
-# 设置输入文件
-set(doxyfile_in ${PROJECT_SOURCE_DIR}/Doxyfile.in)
-# 设置输出文件
-set(doxyfile ${PROJECT_BINARY_DIR}/Doxyfile)
-
-# 将输入文件的 @VAR@ 替换成 cmake 变量，保存为输出文件
-configure_file(${doxyfile_in} ${doxyfile} @ONLY)
+set(DOXYGEN_HAVE_DOT YES)
+set(DOXYGEN_DOT_MULTI_TARGETS YES)
+set(DOXYGEN_GENERATE_LATEX NO)
+set(DOXYGEN_PROJECT_NAME ${CMAKE_PROJECT_NAME})
+set(DOXYGEN_PROJECT_NUMBER ${CMAKE_PROJECT_VERSION})
+set(DOXYGEN_PROJECT_BRIEF ${PROJECT_DESCRIPTION})
+set(DOXYGEN_INPUT ${CMAKE_SOURCE_DIR})
+set(DOXYGEN_RECURSIVE YES)
+set(DOXYGEN_EXCLUDE_PATTERNS */3rd/*, */.vscode/*, */.idea/*, */.github/*, */.git/*, */build*/*, */cmake-/*)
+set(DOXYGEN_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
 
 # 创建 target 并通过 VERBATIM 将 cmake 参数传递给 doxygen
-add_custom_target(doc
-    COMMENT "Generating docs at ${PROJECT_BINARY_DIR}/html/index.html ..."
-    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-    COMMAND ${DOXYGEN_EXECUTABLE} ${doxyfile}
-    VERBATIM
-)
+doxygen_add_docs(doc
+        COMMENT "Generating docs at ${PROJECT_BINARY_DIR}/html/index.html ..."
+        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+        ${CMAKE_SOURCE_DIR}
+        )
